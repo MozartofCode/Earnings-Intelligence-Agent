@@ -20,6 +20,8 @@ export class Watchlist {
   error = signal<string | null>(null);
   newSymbol = '';
   analyzeStatus = signal<Record<string, string>>({});
+  analyzeErrorDetail = signal<Record<string, string>>({});
+  private analyzeErrors = new Set<string>();
 
   constructor() {
     this.refresh();
@@ -63,15 +65,22 @@ export class Watchlist {
   }
 
   analyze(symbol: string): void {
-    this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Running...' }));
+    this.analyzeErrors.delete(symbol);
+    this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Running…' }));
     this.api.analyzeTicker(symbol).subscribe({
       next: () => {
         this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Done' }));
       },
       error: (err) => {
-        const detail = err?.error?.detail ?? 'Analysis is not available yet.';
-        this.analyzeStatus.update((s) => ({ ...s, [symbol]: detail }));
+        const detail: string = err?.error?.detail ?? 'Analysis is not available yet.';
+        this.analyzeErrors.add(symbol);
+        this.analyzeErrorDetail.update((s) => ({ ...s, [symbol]: detail }));
+        this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Not implemented yet' }));
       },
     });
+  }
+
+  isAnalyzeError(symbol: string): boolean {
+    return this.analyzeErrors.has(symbol);
   }
 }

@@ -1,44 +1,57 @@
-<section class="brief-detail">
-  <a routerLink="/">&larr; Back to watchlist</a>
-  <h1>{{ symbol() }}</h1>
+<section class="page">
+  <a class="back-link" routerLink="/">← Back to watchlist</a>
 
   @if (error()) {
-    <p class="error">{{ error() }}</p>
+    <div class="banner banner-error">{{ error() }}</div>
   } @else if (loading()) {
-    <p>Loading...</p>
+    <div class="skeleton-list">
+      <div class="skeleton-card" style="height: 40px; width: 200px;"></div>
+      <div class="skeleton-card" style="height: 160px;"></div>
+    </div>
   } @else if (!latest) {
-    <p class="empty">
-      No brief yet for {{ symbol() }}. Trigger an analysis from the watchlist page once the
-      agent is implemented.
-    </p>
+    <div class="empty-state">
+      <div class="empty-icon">🗂️</div>
+      <h3>No brief yet for {{ symbol() }}</h3>
+      <p>Trigger an analysis from the watchlist page once the agent is implemented.</p>
+    </div>
   } @else {
-    <article>
-      <header>
-        <h2>{{ latest.company_name }} — {{ latest.period }}</h2>
-        <span class="rating">{{ latest.overall_rating }}</span>
-        <span class="sentiment">{{ latest.management_sentiment }}</span>
+    <article class="brief">
+      <header class="brief-header">
+        <div>
+          <div class="brief-eyebrow">{{ symbol() }}</div>
+          <h1>{{ latest.company_name }}</h1>
+          <p class="subtitle">{{ latest.period }}</p>
+        </div>
+        <div class="brief-badges">
+          <span class="badge" [class]="ratingClass(latest.overall_rating)">{{
+            latest.overall_rating
+          }}</span>
+          <span class="badge" [class]="sentimentClass(latest.management_sentiment)">
+            {{ sentimentLabel(latest.management_sentiment) }}
+          </span>
+        </div>
       </header>
 
-      <p class="summary">{{ latest.one_line_summary }}</p>
+      <p class="summary-line">{{ latest.one_line_summary }}</p>
 
-      <section>
-        <h3>Business</h3>
+      <section class="card">
+        <h2>Business</h2>
         <p>{{ latest.business_summary }}</p>
       </section>
 
       <section class="theses">
-        <div>
-          <h3>Bull thesis</h3>
-          <p>{{ latest.bull_thesis.argument }}</p>
+        <div class="card thesis-card thesis-bull">
+          <h2><span class="thesis-icon">▲</span> Bull thesis</h2>
+          <p class="thesis-argument">{{ latest.bull_thesis.argument }}</p>
           <ul>
             @for (fact of latest.bull_thesis.supporting_facts; track fact) {
               <li>{{ fact }}</li>
             }
           </ul>
         </div>
-        <div>
-          <h3>Bear thesis</h3>
-          <p>{{ latest.bear_thesis.argument }}</p>
+        <div class="card thesis-card thesis-bear">
+          <h2><span class="thesis-icon">▼</span> Bear thesis</h2>
+          <p class="thesis-argument">{{ latest.bear_thesis.argument }}</p>
           <ul>
             @for (fact of latest.bear_thesis.supporting_facts; track fact) {
               <li>{{ fact }}</li>
@@ -48,32 +61,27 @@
       </section>
 
       @if (latest.key_risks.length) {
-        <section>
-          <h3>Risks</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th>Description</th>
-                <th>Severity</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (risk of latest.key_risks; track risk.description) {
-                <tr>
-                  <td>{{ risk.category }}</td>
-                  <td>{{ risk.description }}</td>
-                  <td>{{ risk.severity }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
+        <section class="card">
+          <h2>Risks</h2>
+          <div class="risk-list">
+            @for (risk of latest.key_risks; track risk.description) {
+              <div class="risk-row">
+                <span class="badge" [class]="severityClass(risk.severity)">{{
+                  risk.severity
+                }}</span>
+                <div>
+                  <div class="risk-category">{{ risk.category }}</div>
+                  <div class="risk-description">{{ risk.description }}</div>
+                </div>
+              </div>
+            }
+          </div>
         </section>
       }
 
       @if (latest.red_flags.length) {
-        <section>
-          <h3>Red flags</h3>
+        <section class="card card-flags">
+          <h2>⚑ Red flags</h2>
           <ul>
             @for (flag of latest.red_flags; track flag) {
               <li>{{ flag }}</li>

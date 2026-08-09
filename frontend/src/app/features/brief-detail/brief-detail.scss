@@ -1,48 +1,110 @@
-.brief-detail {
-  max-width: 720px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  font-family: system-ui, sans-serif;
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+
+  &:hover {
+    color: var(--color-primary);
+  }
 }
 
-header {
+.brief-header {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+
+  h1 {
+    margin: 0.1rem 0 0.2rem;
+    font-size: 1.6rem;
+  }
 }
 
-.rating,
-.sentiment {
-  font-size: 0.85rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  background: #f1f1f1;
+.brief-eyebrow {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-primary);
 }
 
-.summary {
-  font-size: 1.1rem;
-  font-style: italic;
+.brief-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding-top: 0.2rem;
+}
+
+.summary-line {
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  margin: 0 0 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .theses {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
+  gap: 1.25rem;
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  th,
-  td {
-    text-align: left;
-    padding: 0.4rem;
-    border-bottom: 1px solid #ddd;
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
   }
 }
 
-.error,
-.empty {
-  color: #666;
+.thesis-card h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.thesis-bull .thesis-icon {
+  color: var(--color-success);
+}
+
+.thesis-bear .thesis-icon {
+  color: var(--color-danger);
+}
+
+.thesis-argument {
+  font-weight: 500;
+  margin-bottom: 0.6rem !important;
+}
+
+.risk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.risk-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  .badge {
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+  }
+}
+
+.risk-category {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.risk-description {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.card-flags {
+  border-color: rgba(217, 119, 6, 0.3);
+  background: var(--color-warning-soft);
+
+  ul {
+    color: #92400e;
+  }
 }

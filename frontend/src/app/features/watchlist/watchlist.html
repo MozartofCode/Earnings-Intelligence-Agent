@@ -1,53 +1,81 @@
-<section class="watchlist">
-  <h1>Watchlist</h1>
+<section class="page">
+  <div class="page-header">
+    <div>
+      <h1>Watchlist</h1>
+      <p class="subtitle">Tickers you're tracking for earnings intelligence briefs.</p>
+    </div>
+  </div>
 
   @if (error()) {
-    <p class="error">{{ error() }}</p>
+    <div class="banner banner-error">{{ error() }}</div>
   }
 
   <form class="add-form" (ngSubmit)="addTicker()">
     <input
       type="text"
-      placeholder="Ticker symbol (e.g. AAPL)"
+      placeholder="Add a ticker, e.g. AAPL"
       [(ngModel)]="newSymbol"
       name="newSymbol"
       autocomplete="off"
     />
-    <button type="submit">Add</button>
+    <button type="submit" class="btn btn-primary">
+      <span class="btn-icon">+</span>
+      Add
+    </button>
   </form>
 
   @if (loading()) {
-    <p>Loading...</p>
+    <div class="skeleton-list">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skeleton-card"></div>
+      }
+    </div>
   } @else if (tickers().length === 0) {
-    <p class="empty">No tickers yet. Add one above to get started.</p>
+    <div class="empty-state">
+      <div class="empty-icon">📈</div>
+      <h3>No tickers yet</h3>
+      <p>Add a ticker above to start building your watchlist.</p>
+    </div>
   } @else {
-    <table>
-      <thead>
-        <tr>
-          <th>Symbol</th>
-          <th>Company</th>
-          <th>Added</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (ticker of tickers(); track ticker.id) {
-          <tr>
-            <td><a [routerLink]="['/briefs', ticker.symbol]">{{ ticker.symbol }}</a></td>
-            <td>{{ ticker.company_name || '—' }}</td>
-            <td>{{ ticker.added_at | date: 'mediumDate' }}</td>
-            <td class="actions">
-              <button type="button" (click)="analyze(ticker.symbol)">Analyze</button>
-              <button type="button" class="danger" (click)="removeTicker(ticker.symbol)">
-                Remove
-              </button>
-              @if (analyzeStatus()[ticker.symbol]) {
-                <span class="status">{{ analyzeStatus()[ticker.symbol] }}</span>
-              }
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+    <div class="ticker-grid">
+      @for (ticker of tickers(); track ticker.id) {
+        <div class="ticker-card">
+          <div class="ticker-card-main">
+            <a class="ticker-symbol" [routerLink]="['/briefs', ticker.symbol]">{{
+              ticker.symbol
+            }}</a>
+            <span class="ticker-company">{{ ticker.company_name || 'No company name set' }}</span>
+            <span class="ticker-added">Added {{ ticker.added_at | date: 'mediumDate' }}</span>
+          </div>
+          <div class="ticker-card-actions">
+            @if (analyzeStatus()[ticker.symbol]) {
+              <span
+                class="status-pill"
+                [class.status-error]="isAnalyzeError(ticker.symbol)"
+                [title]="analyzeErrorDetail()[ticker.symbol] ?? ''"
+              >
+                {{ analyzeStatus()[ticker.symbol] }}
+              </span>
+            }
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="analyze(ticker.symbol)"
+              [disabled]="analyzeStatus()[ticker.symbol] === 'Running…'"
+            >
+              Analyze
+            </button>
+            <button
+              type="button"
+              class="btn btn-icon-only btn-danger-ghost"
+              title="Remove {{ ticker.symbol }}"
+              (click)="removeTicker(ticker.symbol)"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      }
+    </div>
   }
 </section>

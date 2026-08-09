@@ -3,7 +3,15 @@ import { RouterLink } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiService } from '../../core/services/api.service';
-import { EarningsBrief } from '../../core/models/brief.model';
+import { EarningsBrief, Sentiment } from '../../core/models/brief.model';
+
+const SENTIMENT_LABELS: Record<Sentiment, string> = {
+  very_positive: 'Very Positive',
+  positive: 'Positive',
+  neutral: 'Neutral',
+  negative: 'Negative',
+  very_negative: 'Very Negative',
+};
 
 @Component({
   selector: 'app-brief-detail',
@@ -37,5 +45,29 @@ export class BriefDetail {
 
   get latest(): EarningsBrief | undefined {
     return this.briefs()[0];
+  }
+
+  ratingClass(rating: string): string {
+    const normalized = rating.toLowerCase();
+    if (normalized.includes('strong buy') || normalized.includes('buy')) return 'badge-success';
+    if (normalized.includes('sell')) return 'badge-danger';
+    return 'badge-neutral';
+  }
+
+  sentimentClass(sentiment: Sentiment): string {
+    if (sentiment === 'very_positive' || sentiment === 'positive') return 'badge-success';
+    if (sentiment === 'very_negative' || sentiment === 'negative') return 'badge-danger';
+    return 'badge-neutral';
+  }
+
+  sentimentLabel(sentiment: Sentiment): string {
+    return SENTIMENT_LABELS[sentiment] ?? sentiment;
+  }
+
+  severityClass(severity: string): string {
+    const normalized = severity.toLowerCase();
+    if (normalized === 'high') return 'badge-danger';
+    if (normalized === 'medium') return 'badge-warning';
+    return 'badge-neutral';
   }
 }
