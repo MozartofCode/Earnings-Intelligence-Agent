@@ -1,1 +1,86 @@
-<p>brief-detail works!</p>
+<section class="brief-detail">
+  <a routerLink="/">&larr; Back to watchlist</a>
+  <h1>{{ symbol() }}</h1>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (loading()) {
+    <p>Loading...</p>
+  } @else if (!latest) {
+    <p class="empty">
+      No brief yet for {{ symbol() }}. Trigger an analysis from the watchlist page once the
+      agent is implemented.
+    </p>
+  } @else {
+    <article>
+      <header>
+        <h2>{{ latest.company_name }} — {{ latest.period }}</h2>
+        <span class="rating">{{ latest.overall_rating }}</span>
+        <span class="sentiment">{{ latest.management_sentiment }}</span>
+      </header>
+
+      <p class="summary">{{ latest.one_line_summary }}</p>
+
+      <section>
+        <h3>Business</h3>
+        <p>{{ latest.business_summary }}</p>
+      </section>
+
+      <section class="theses">
+        <div>
+          <h3>Bull thesis</h3>
+          <p>{{ latest.bull_thesis.argument }}</p>
+          <ul>
+            @for (fact of latest.bull_thesis.supporting_facts; track fact) {
+              <li>{{ fact }}</li>
+            }
+          </ul>
+        </div>
+        <div>
+          <h3>Bear thesis</h3>
+          <p>{{ latest.bear_thesis.argument }}</p>
+          <ul>
+            @for (fact of latest.bear_thesis.supporting_facts; track fact) {
+              <li>{{ fact }}</li>
+            }
+          </ul>
+        </div>
+      </section>
+
+      @if (latest.key_risks.length) {
+        <section>
+          <h3>Risks</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Severity</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (risk of latest.key_risks; track risk.description) {
+                <tr>
+                  <td>{{ risk.category }}</td>
+                  <td>{{ risk.description }}</td>
+                  <td>{{ risk.severity }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </section>
+      }
+
+      @if (latest.red_flags.length) {
+        <section>
+          <h3>Red flags</h3>
+          <ul>
+            @for (flag of latest.red_flags; track flag) {
+              <li>{{ flag }}</li>
+            }
+          </ul>
+        </section>
+      }
+    </article>
+  }
+</section>

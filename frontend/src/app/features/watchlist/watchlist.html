@@ -1,1 +1,53 @@
-<p>watchlist works!</p>
+<section class="watchlist">
+  <h1>Watchlist</h1>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  <form class="add-form" (ngSubmit)="addTicker()">
+    <input
+      type="text"
+      placeholder="Ticker symbol (e.g. AAPL)"
+      [(ngModel)]="newSymbol"
+      name="newSymbol"
+      autocomplete="off"
+    />
+    <button type="submit">Add</button>
+  </form>
+
+  @if (loading()) {
+    <p>Loading...</p>
+  } @else if (tickers().length === 0) {
+    <p class="empty">No tickers yet. Add one above to get started.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Company</th>
+          <th>Added</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (ticker of tickers(); track ticker.id) {
+          <tr>
+            <td><a [routerLink]="['/briefs', ticker.symbol]">{{ ticker.symbol }}</a></td>
+            <td>{{ ticker.company_name || '—' }}</td>
+            <td>{{ ticker.added_at | date: 'mediumDate' }}</td>
+            <td class="actions">
+              <button type="button" (click)="analyze(ticker.symbol)">Analyze</button>
+              <button type="button" class="danger" (click)="removeTicker(ticker.symbol)">
+                Remove
+              </button>
+              @if (analyzeStatus()[ticker.symbol]) {
+                <span class="status">{{ analyzeStatus()[ticker.symbol] }}</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
