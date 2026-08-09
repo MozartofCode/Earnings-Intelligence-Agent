@@ -90,8 +90,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # to point at Postgres/AWS RDS later without touching this file.
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    'default': dj_database_url.parse(
+        os.getenv('DATABASE_URL') or f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
     )
 }
 
