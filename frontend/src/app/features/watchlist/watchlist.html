@@ -2,7 +2,14 @@
   <div class="page-header">
     <div>
       <h1>Watchlist</h1>
-      <p class="subtitle">Tickers you're tracking for earnings intelligence briefs.</p>
+      <p class="subtitle">
+        @if (!loading() && tickers().length > 0) {
+          Tracking {{ tickers().length }}
+          {{ tickers().length === 1 ? 'ticker' : 'tickers' }} for earnings intelligence briefs.
+        } @else {
+          Tickers you're tracking for earnings intelligence briefs.
+        }
+      </p>
     </div>
   </div>
 
@@ -17,9 +24,14 @@
       [(ngModel)]="newSymbol"
       name="newSymbol"
       autocomplete="off"
+      maxlength="10"
     />
-    <button type="submit" class="btn btn-primary">
-      <span class="btn-icon">+</span>
+    <button type="submit" class="btn btn-primary" [disabled]="!newSymbol.trim() || submitting()">
+      @if (submitting()) {
+        <span class="spinner"></span>
+      } @else {
+        <span class="btn-icon">+</span>
+      }
       Add
     </button>
   </form>
@@ -41,11 +53,18 @@
       @for (ticker of tickers(); track ticker.id) {
         <div class="ticker-card">
           <div class="ticker-card-main">
-            <a class="ticker-symbol" [routerLink]="['/briefs', ticker.symbol]">{{
-              ticker.symbol
-            }}</a>
-            <span class="ticker-company">{{ ticker.company_name || 'No company name set' }}</span>
-            <span class="ticker-added">Added {{ ticker.added_at | date: 'mediumDate' }}</span>
+            <span class="ticker-avatar" [style.background]="avatarColor(ticker.symbol)">
+              {{ ticker.symbol.slice(0, 2) }}
+            </span>
+            <div class="ticker-info">
+              <a class="ticker-symbol" [routerLink]="['/briefs', ticker.symbol]">{{
+                ticker.symbol
+              }}</a>
+              <span class="ticker-meta">
+                {{ ticker.company_name || 'No company name set' }} · Added
+                {{ ticker.added_at | date: 'mediumDate' }}
+              </span>
+            </div>
           </div>
           <div class="ticker-card-actions">
             @if (analyzeStatus()[ticker.symbol]) {
@@ -61,8 +80,11 @@
               type="button"
               class="btn btn-secondary"
               (click)="analyze(ticker.symbol)"
-              [disabled]="analyzeStatus()[ticker.symbol] === 'Running…'"
+              [disabled]="isAnalyzeRunning(ticker.symbol)"
             >
+              @if (isAnalyzeRunning(ticker.symbol)) {
+                <span class="spinner spinner-dark"></span>
+              }
               Analyze
             </button>
             <button

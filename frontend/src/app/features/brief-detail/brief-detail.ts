@@ -47,6 +47,21 @@ export class BriefDetail {
     return this.briefs()[0];
   }
 
+  get metricEntries(): { key: string; value: string }[] {
+    const metrics = this.latest?.key_metrics;
+    if (!metrics) return [];
+    return Object.entries(metrics).map(([key, value]) => ({
+      key: this.humanizeKey(key),
+      value: String(value),
+    }));
+  }
+
+  private humanizeKey(key: string): string {
+    return key
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
   ratingClass(rating: string): string {
     const normalized = rating.toLowerCase();
     if (normalized.includes('strong buy') || normalized.includes('buy')) return 'badge-success';

@@ -5,8 +5,9 @@
     <div class="banner banner-error">{{ error() }}</div>
   } @else if (loading()) {
     <div class="skeleton-list">
-      <div class="skeleton-card" style="height: 40px; width: 200px;"></div>
-      <div class="skeleton-card" style="height: 160px;"></div>
+      <div class="skeleton-card" style="height: 44px; width: 240px;"></div>
+      <div class="skeleton-card" style="height: 180px;"></div>
+      <div class="skeleton-card" style="height: 180px;"></div>
     </div>
   } @else if (!latest) {
     <div class="empty-state">
@@ -34,10 +35,31 @@
 
       <p class="summary-line">{{ latest.one_line_summary }}</p>
 
+      @if (metricEntries.length) {
+        <section class="metrics-grid">
+          @for (metric of metricEntries; track metric.key) {
+            <div class="metric-tile">
+              <span class="metric-label">{{ metric.key }}</span>
+              <span class="metric-value">{{ metric.value }}</span>
+            </div>
+          }
+        </section>
+      }
+
       <section class="card">
         <h2>Business</h2>
         <p>{{ latest.business_summary }}</p>
+        @if (latest.revenue_model) {
+          <p class="secondary-line">{{ latest.revenue_model }}</p>
+        }
       </section>
+
+      @if (latest.quarter_vs_prior) {
+        <section class="card">
+          <h2>This quarter vs. prior</h2>
+          <p>{{ latest.quarter_vs_prior }}</p>
+        </section>
+      }
 
       <section class="theses">
         <div class="card thesis-card thesis-bull">
@@ -59,6 +81,13 @@
           </ul>
         </div>
       </section>
+
+      @if (latest.management_sentiment_evidence) {
+        <section class="card">
+          <h2>Management sentiment</h2>
+          <blockquote>{{ latest.management_sentiment_evidence }}</blockquote>
+        </section>
+      }
 
       @if (latest.key_risks.length) {
         <section class="card">
@@ -87,6 +116,26 @@
               <li>{{ flag }}</li>
             }
           </ul>
+        </section>
+      }
+
+      @if (latest.analyst_consensus || latest.price_targets) {
+        <section class="card">
+          <h2>Analyst coverage</h2>
+          <dl class="analyst-grid">
+            @if (latest.analyst_consensus) {
+              <div>
+                <dt>Consensus</dt>
+                <dd>{{ latest.analyst_consensus }}</dd>
+              </div>
+            }
+            @if (latest.price_targets) {
+              <div>
+                <dt>Price targets</dt>
+                <dd>{{ latest.price_targets }}</dd>
+              </div>
+            }
+          </dl>
         </section>
       }
     </article>
