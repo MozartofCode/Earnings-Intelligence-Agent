@@ -23,13 +23,18 @@
           <h1>{{ latest.company_name }}</h1>
           <p class="subtitle">{{ latest.period }}</p>
         </div>
-        <div class="brief-badges">
-          <span class="badge" [class]="ratingClass(latest.overall_rating)">{{
-            latest.overall_rating
-          }}</span>
-          <span class="badge" [class]="sentimentClass(latest.management_sentiment)">
-            {{ sentimentLabel(latest.management_sentiment) }}
-          </span>
+        <div class="verdict">
+          <div class="verdict-rating" [class]="ratingTone(latest.overall_rating)">
+            {{ latest.overall_rating }}
+          </div>
+          <div class="meter">
+            <div class="meter-needle" [style.left.%]="ratingPosition(latest.overall_rating)"></div>
+          </div>
+          <div class="meter-labels">
+            <span>Sell</span>
+            <span>Hold</span>
+            <span>Buy</span>
+          </div>
         </div>
       </header>
 
@@ -83,8 +88,13 @@
       </section>
 
       @if (latest.management_sentiment_evidence) {
-        <section class="card">
-          <h2>Management sentiment</h2>
+        <section class="card card-sentiment">
+          <h2>
+            Management sentiment
+            <span class="badge sentiment-inline" [class]="sentimentClass(latest.management_sentiment)">
+              {{ sentimentLabel(latest.management_sentiment) }}
+            </span>
+          </h2>
           <blockquote>{{ latest.management_sentiment_evidence }}</blockquote>
         </section>
       }
@@ -95,13 +105,10 @@
           <div class="risk-list">
             @for (risk of latest.key_risks; track risk.description) {
               <div class="risk-row">
-                <span class="badge" [class]="severityClass(risk.severity)">{{
-                  risk.severity
-                }}</span>
-                <div>
-                  <div class="risk-category">{{ risk.category }}</div>
-                  <div class="risk-description">{{ risk.description }}</div>
-                </div>
+                <span class="risk-stripe" [class]="severityTone(risk.severity)"></span>
+                <div class="risk-cat">{{ risk.category }}</div>
+                <div class="risk-description">{{ risk.description }}</div>
+                <span class="sev-tag" [class]="severityTone(risk.severity)">{{ risk.severity }}</span>
               </div>
             }
           </div>
@@ -111,11 +118,14 @@
       @if (latest.red_flags.length) {
         <section class="card card-flags">
           <h2>⚑ Red flags</h2>
-          <ul>
+          <div class="flag-list">
             @for (flag of latest.red_flags; track flag) {
-              <li>{{ flag }}</li>
+              <div class="flag-row">
+                <span class="flag-icon">⚑</span>
+                <span class="flag-text">{{ flag }}</span>
+              </div>
             }
-          </ul>
+          </div>
         </section>
       }
 

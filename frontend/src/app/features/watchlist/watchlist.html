@@ -57,35 +57,46 @@
               {{ ticker.symbol.slice(0, 2) }}
             </span>
             <div class="ticker-info">
-              <a class="ticker-symbol" [routerLink]="['/briefs', ticker.symbol]">{{
-                ticker.symbol
-              }}</a>
-              <span class="ticker-meta">
-                {{ ticker.company_name || 'No company name set' }} · Added
-                {{ ticker.added_at | date: 'mediumDate' }}
-              </span>
+              <span class="ticker-symbol">{{ ticker.symbol }}</span>
+              <span class="ticker-company">{{ ticker.company_name || 'No company name set' }}</span>
             </div>
           </div>
-          <div class="ticker-card-actions">
-            @if (analyzeStatus()[ticker.symbol]) {
-              <span
-                class="status-pill"
-                [class.status-error]="isAnalyzeError(ticker.symbol)"
-                [title]="analyzeErrorDetail()[ticker.symbol] ?? ''"
-              >
+
+          <div class="ticker-status">
+            <span class="freshness-chip" [class]="statusChip(ticker.symbol).tone">
+              <span class="dot" [class]="statusChip(ticker.symbol).tone"></span>
+              {{ statusChip(ticker.symbol).label }}
+            </span>
+            @if (hasBrief(ticker.symbol)) {
+              <p class="ticker-snippet">
+                <span class="badge rating-mini" [class]="ratingBadgeClass(briefFor(ticker.symbol)!.overall_rating)">{{
+                  briefFor(ticker.symbol)!.overall_rating
+                }}</span
+                >{{ briefFor(ticker.symbol)!.one_line_summary }}
+              </p>
+            } @else if (analyzeErrorDetail()[ticker.symbol]) {
+              <p class="ticker-snippet ticker-snippet-muted" [title]="analyzeErrorDetail()[ticker.symbol]">
                 {{ analyzeStatus()[ticker.symbol] }}
-              </span>
+              </p>
+            } @else {
+              <p class="ticker-snippet ticker-snippet-muted">No brief yet · added {{ ticker.added_at | date: 'mediumDate' }}</p>
+            }
+          </div>
+
+          <div class="ticker-card-actions">
+            @if (hasBrief(ticker.symbol)) {
+              <a class="btn btn-secondary" [routerLink]="['/briefs', ticker.symbol]">View brief</a>
             }
             <button
               type="button"
-              class="btn btn-secondary"
+              class="btn btn-primary"
               (click)="analyze(ticker.symbol)"
               [disabled]="isAnalyzeRunning(ticker.symbol)"
             >
               @if (isAnalyzeRunning(ticker.symbol)) {
-                <span class="spinner spinner-dark"></span>
+                <span class="spinner"></span>
               }
-              Analyze
+              {{ hasBrief(ticker.symbol) ? 'Re-analyze' : 'Analyze' }}
             </button>
             <button
               type="button"

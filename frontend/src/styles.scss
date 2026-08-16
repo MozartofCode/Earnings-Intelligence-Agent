@@ -1,27 +1,27 @@
 /* Global design tokens + reset */
 
 :root {
-  --color-bg: #f6f7fb;
-  --color-surface: #ffffff;
-  --color-surface-hover: #fafbfc;
-  --color-border: #e6e8ec;
-  --color-border-strong: #d5d8de;
-  --color-text: #14161a;
-  --color-text-muted: #6b7280;
-  --color-text-faint: #9ca3af;
+  --color-bg: #f7f2e7;
+  --color-surface: #fffdf8;
+  --color-surface-hover: #f1e9d8;
+  --color-border: rgba(24, 20, 15, 0.14);
+  --color-border-strong: rgba(24, 20, 15, 0.24);
+  --color-text: #18140f;
+  --color-text-muted: #5c5140;
+  --color-text-faint: #8a7d66;
 
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
-  --color-primary-soft: #eef0fe;
-  --color-primary-text: #4338ca;
+  --color-primary: #b5622b;
+  --color-primary-hover: #9c5423;
+  --color-primary-soft: #f1dcc5;
+  --color-primary-text: #b5622b;
 
-  --color-danger: #dc2626;
-  --color-danger-hover: #b91c1c;
-  --color-danger-soft: #fef2f2;
-  --color-success: #15803d;
-  --color-success-soft: #f0fdf4;
-  --color-warning: #b45309;
-  --color-warning-soft: #fffbeb;
+  --color-danger: #a8402f;
+  --color-danger-hover: #8e3527;
+  --color-danger-soft: #efdad3;
+  --color-success: #3f7d4f;
+  --color-success-soft: #dce8dc;
+  --color-warning: #a8791f;
+  --color-warning-soft: #eee1be;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -36,9 +36,9 @@
   --space-6: 2rem;
   --space-8: 3rem;
 
-  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
-  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.07), 0 1px 2px rgba(16, 24, 40, 0.04);
-  --shadow-md: 0 4px 16px rgba(16, 24, 40, 0.09), 0 2px 4px rgba(16, 24, 40, 0.05);
+  --shadow-xs: 0 1px 2px rgba(24, 20, 15, 0.05);
+  --shadow-sm: 0 1px 3px rgba(24, 20, 15, 0.08), 0 1px 2px rgba(24, 20, 15, 0.05);
+  --shadow-md: 0 6px 20px -8px rgba(24, 20, 15, 0.22), 0 2px 4px rgba(24, 20, 15, 0.06);
   --shadow-focus: 0 0 0 3px var(--color-primary-soft);
 
   --ease: cubic-bezier(0.2, 0, 0, 1);
@@ -46,35 +46,37 @@
 
   --font-sans:
     'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, 'Roboto Mono', monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #0e0f13;
-    --color-surface: #17181d;
-    --color-surface-hover: #1c1e24;
-    --color-border: #2a2c33;
-    --color-border-strong: #3a3d46;
-    --color-text: #f3f4f6;
-    --color-text-muted: #9ca0aa;
-    --color-text-faint: #6b7078;
+    --color-bg: #171410;
+    --color-surface: #1c1812;
+    --color-surface-hover: #241f17;
+    --color-border: rgba(243, 238, 226, 0.12);
+    --color-border-strong: rgba(243, 238, 226, 0.22);
+    --color-text: #f3eee2;
+    --color-text-muted: #b0a488;
+    --color-text-faint: #8a7d66;
 
-    --color-primary: #818cf8;
-    --color-primary-hover: #a5b4fc;
-    --color-primary-soft: rgba(129, 140, 248, 0.14);
-    --color-primary-text: #a5b4fc;
+    --color-primary: #e08a47;
+    --color-primary-hover: #eba066;
+    --color-primary-soft: #3a2a18;
+    --color-primary-text: #e08a47;
 
-    --color-danger: #f87171;
-    --color-danger-hover: #fca5a5;
-    --color-danger-soft: rgba(248, 113, 113, 0.12);
-    --color-success: #4ade80;
-    --color-success-soft: rgba(74, 222, 128, 0.12);
-    --color-warning: #fbbf24;
-    --color-warning-soft: rgba(251, 191, 36, 0.12);
+    --color-danger: #e08272;
+    --color-danger-hover: #e89c8f;
+    --color-danger-soft: #332019;
+    --color-success: #7fbe8f;
+    --color-success-soft: #1e2e20;
+    --color-warning: #e0b657;
+    --color-warning-soft: #332711;
 
     --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 10px 30px -10px rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -377,9 +379,16 @@ a {
   margin-bottom: var(--space-4);
 
   h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin: 0 0 0.8rem;
-    font-size: 0.98rem;
+    font-size: 0.72rem;
     font-weight: 700;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
   }
 
   p {

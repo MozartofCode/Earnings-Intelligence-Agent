@@ -32,12 +32,13 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--color-primary), #7c3aed);
-  color: white;
-  font-weight: 800;
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
+  border-radius: 6px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-weight: 700;
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
 }
 
 .brand-name {

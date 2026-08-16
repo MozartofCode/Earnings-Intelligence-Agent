@@ -62,11 +62,21 @@ export class BriefDetail {
       .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
-  ratingClass(rating: string): string {
+  ratingTone(rating: string): 'buy' | 'hold' | 'sell' {
     const normalized = rating.toLowerCase();
-    if (normalized.includes('strong buy') || normalized.includes('buy')) return 'badge-success';
-    if (normalized.includes('sell')) return 'badge-danger';
-    return 'badge-neutral';
+    if (normalized.includes('sell')) return 'sell';
+    if (normalized.includes('buy')) return 'buy';
+    return 'hold';
+  }
+
+  /** Needle position (0-100) along the sell↔buy verdict meter. */
+  ratingPosition(rating: string): number {
+    const normalized = rating.toLowerCase();
+    if (normalized.includes('strong sell')) return 6;
+    if (normalized.includes('strong buy')) return 94;
+    if (normalized.includes('sell')) return 25;
+    if (normalized.includes('buy')) return 75;
+    return 50;
   }
 
   sentimentClass(sentiment: Sentiment): string {
@@ -79,10 +89,10 @@ export class BriefDetail {
     return SENTIMENT_LABELS[sentiment] ?? sentiment;
   }
 
-  severityClass(severity: string): string {
+  severityTone(severity: string): 'high' | 'medium' | 'low' {
     const normalized = severity.toLowerCase();
-    if (normalized === 'high') return 'badge-danger';
-    if (normalized === 'medium') return 'badge-warning';
-    return 'badge-neutral';
+    if (normalized === 'high') return 'high';
+    if (normalized === 'medium') return 'medium';
+    return 'low';
   }
 }
