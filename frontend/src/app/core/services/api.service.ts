@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { EarningsBrief } from '../models/brief.model';
+import { AnalysisRun, EarningsBrief } from '../models/brief.model';
 import { Ticker } from '../models/ticker.model';
 
 @Injectable({ providedIn: 'root' })
@@ -26,8 +26,12 @@ export class ApiService {
     return this.http.delete<void>(`${this.baseUrl}/tickers/${symbol}/`);
   }
 
-  analyzeTicker(symbol: string): Observable<unknown> {
-    return this.http.post(`${this.baseUrl}/tickers/${symbol}/analyze/`, {});
+  analyzeTicker(symbol: string): Observable<AnalysisRun> {
+    return this.http.post<AnalysisRun>(`${this.baseUrl}/tickers/${symbol}/analyze/`, {});
+  }
+
+  getAnalysisRun(id: number): Observable<AnalysisRun> {
+    return this.http.get<AnalysisRun>(`${this.baseUrl}/analysis-runs/${id}/`);
   }
 
   listBriefs(symbol?: string): Observable<EarningsBrief[]> {

@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -136,3 +137,49 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# --- Celery ---
+# The /analyze endpoint enqueues a Celery task instead of blocking on the
+# agent run. Requires a running broker (Redis by default) and a worker
+# process: `celery -A config worker -l info`. Set CELERY_TASK_ALWAYS_EAGER=True
+# to run tasks synchronously in-process instead (no broker/worker needed) —
+# useful for quick local testing, but defeats the point of the queue.
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_TASK_ALWAYS_EAGER = os.getenv('CELERY_TASK_ALWAYS_EAGER', 'False') == 'True'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+# Periodic run across the WATCHLIST env var, via Celery Beat
+# (`celery -A config beat -l info`). Schedule is configurable via env vars
+# since "weekly on Monday morning" is a guess, not a requirement.
+CELERY_BEAT_SCHEDULE = {
+    'run-watchlist': {
+        'task': 'intelligence.tasks.run_watchlist_task',
+        'schedule': crontab(
+            day_of_week=os.getenv('WATCHLIST_SCHEDULE_DAY', 'mon'),
+            hour=os.getenv('WATCHLIST_SCHEDULE_HOUR', '6'),
+            minute=os.getenv('WATCHLIST_SCHEDULE_MINUTE', '0'),
+        ),
+    },
+}
+
+
+# --- DRF: throttling + a lightweight shared-secret permission ---
+# ANALYZE_THROTTLE_RATE caps how often the (LLM-cost-incurring) /analyze
+# endpoint can be hit per client. API_AUTH_TOKEN, if set, requires an
+# `Authorization: Token <value>` header on unsafe requests — see
+# intelligence/permissions.py. Both are no-ops by default so local dev/the
+# bundled frontend keep working without extra setup.
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': ['intelligence.permissions.HasApiToken'],
+    'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.ScopedRateThrottle'],
+    'DEFAULT_THROTTLE_RATES': {
+        'analyze': os.getenv('ANALYZE_THROTTLE_RATE', '10/hour'),
+    },
+}

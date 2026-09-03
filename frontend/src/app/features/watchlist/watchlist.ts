@@ -2,13 +2,16 @@ import { Component, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { interval } from 'rxjs';
+import { switchMap, takeWhile } from 'rxjs/operators';
 
 import { ApiService } from '../../core/services/api.service';
 import { Ticker } from '../../core/models/ticker.model';
-import { EarningsBrief } from '../../core/models/brief.model';
+import { AnalysisRun, EarningsBrief } from '../../core/models/brief.model';
 
 const AVATAR_COLORS = ['#3f7d4f', '#4c6fa0', '#7a6a3f', '#8a7d66', '#b5622b', '#a8402f'];
 const FRESH_WINDOW_HOURS = 48;
+const POLL_INTERVAL_MS = 3000;
 
 export interface StatusChip {
   label: string;
@@ -131,19 +134,50 @@ export class Watchlist {
 
   analyze(symbol: string): void {
     this.analyzeRunning.add(symbol);
-    this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Running…' }));
-    this.api.analyzeTicker(symbol).subscribe({
-      next: () => {
-        this.analyzeRunning.delete(symbol);
-        this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Done' }));
-      },
-      error: (err) => {
-        const detail: string = err?.error?.detail ?? 'Analysis is not available yet.';
-        this.analyzeRunning.delete(symbol);
-        this.analyzeErrorDetail.update((s) => ({ ...s, [symbol]: detail }));
-        this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Not implemented yet' }));
-      },
+    this.analyzeErrorDetail.update((s) => {
+      const { [symbol]: _removed, ...rest } = s;
+      return rest;
     });
+    this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Queued…' }));
+
+    this.api.analyzeTicker(symbol).subscribe({
+      next: (run) => this.pollAnalysisRun(symbol, run.id),
+      error: (err) => this.handleAnalyzeFailure(symbol, err?.error?.detail ?? 'Could not start analysis.'),
+    });
+  }
+
+  private pollAnalysisRun(symbol: string, runId: number): void {
+    interval(POLL_INTERVAL_MS)
+      .pipe(
+        switchMap(() => this.api.getAnalysisRun(runId)),
+        takeWhile((run) => run.status === 'pending' || run.status === 'running', true),
+      )
+      .subscribe({
+        next: (run) => this.handleAnalysisRunUpdate(symbol, run),
+        error: () => this.handleAnalyzeFailure(symbol, 'Lost track of the analysis run.'),
+      });
+  }
+
+  private handleAnalysisRunUpdate(symbol: string, run: AnalysisRun): void {
+    if (run.status === 'running' || run.status === 'pending') {
+      this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Running…' }));
+      return;
+    }
+
+    this.analyzeRunning.delete(symbol);
+
+    if (run.status === 'success') {
+      this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Done' }));
+      this.loadLatestBriefs();
+    } else {
+      this.handleAnalyzeFailure(symbol, run.error || 'Analysis failed.');
+    }
+  }
+
+  private handleAnalyzeFailure(symbol: string, detail: string): void {
+    this.analyzeRunning.delete(symbol);
+    this.analyzeErrorDetail.update((s) => ({ ...s, [symbol]: detail }));
+    this.analyzeStatus.update((s) => ({ ...s, [symbol]: 'Failed' }));
   }
 
   isAnalyzeRunning(symbol: string): boolean {

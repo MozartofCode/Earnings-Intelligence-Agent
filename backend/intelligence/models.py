@@ -51,3 +51,31 @@ class EarningsBrief(models.Model):
 
     def __str__(self):
         return f"{self.ticker.symbol} — {self.period}"
+
+
+class AnalysisRun(models.Model):
+    """Tracks one asynchronous agent run, so the API can be polled for status
+    while the actual work happens in a Celery task (see intelligence/tasks.py).
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pending"
+        RUNNING = "running", "Running"
+        SUCCESS = "success", "Success"
+        FAILED = "failed", "Failed"
+
+    ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE, related_name="analysis_runs")
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    brief = models.ForeignKey(
+        EarningsBrief, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    error = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.ticker.symbol} — {self.status}"

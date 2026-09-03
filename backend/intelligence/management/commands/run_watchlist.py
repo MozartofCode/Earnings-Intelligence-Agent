@@ -2,16 +2,17 @@
 
 Usage: python manage.py run_watchlist
 
-Placeholder for weekly/cron scheduling (APScheduler, Celery beat, or AWS
-EventBridge) to be added later at deploy time. For now this just calls the
-(stubbed) agent directly for each ticker in the WATCHLIST env var.
+For scheduled runs, prefer the Celery Beat periodic task
+(intelligence.tasks.run_watchlist_task, wired up via CELERY_BEAT_SCHEDULE in
+config/settings.py) — this command remains as a manual/cron-friendly
+alternative that doesn't require a running Celery worker.
 """
 
 import os
 
 from django.core.management.base import BaseCommand
 
-from intelligence.services.agent.graph import build_graph
+from intelligence.services.runner import analyze_ticker
 
 
 class Command(BaseCommand):
@@ -25,9 +26,11 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("WATCHLIST env var is empty — nothing to run."))
             return
 
-        for ticker in watchlist:
-            self.stdout.write(f"Running agent for {ticker}...")
+        for symbol in watchlist:
+            self.stdout.write(f"Running agent for {symbol}...")
             try:
-                build_graph()
-            except NotImplementedError as exc:
-                self.stdout.write(self.style.ERROR(f"{ticker}: {exc}"))
+                analyze_ticker(symbol)
+            except Exception as exc:
+                self.stdout.write(self.style.ERROR(f"{symbol}: agent run failed: {exc}"))
+                continue
+            self.stdout.write(self.style.SUCCESS(f"{symbol}: brief saved."))

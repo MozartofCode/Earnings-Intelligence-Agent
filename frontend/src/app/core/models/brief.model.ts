@@ -32,3 +32,15 @@ export interface EarningsBrief {
   one_line_summary: string;
   created_at: string;
 }
+
+export type AnalysisRunStatus = 'pending' | 'running' | 'success' | 'failed';
+
+export interface AnalysisRun {
+  id: number;
+  ticker: string;
+  status: AnalysisRunStatus;
+  brief: EarningsBrief | null;
+  error: string;
+  created_at: string;
+  updated_at: string;
+}

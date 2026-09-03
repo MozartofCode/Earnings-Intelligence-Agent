@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import EarningsBrief, Ticker
+from .models import AnalysisRun, EarningsBrief, Ticker
 
 
 class TickerSerializer(serializers.ModelSerializer):
@@ -39,4 +39,14 @@ class EarningsBriefSerializer(serializers.ModelSerializer):
             "one_line_summary",
             "created_at",
         ]
+        read_only_fields = fields
+
+
+class AnalysisRunSerializer(serializers.ModelSerializer):
+    ticker = serializers.SlugRelatedField(slug_field="symbol", read_only=True)
+    brief = EarningsBriefSerializer(read_only=True)
+
+    class Meta:
+        model = AnalysisRun
+        fields = ["id", "ticker", "status", "brief", "error", "created_at", "updated_at"]
         read_only_fields = fields
