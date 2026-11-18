@@ -1,6 +1,6 @@
 # earnings-desk eval suite
 
-Five cases that check what the plugin should add over plain Claude: testing beat quality, explaining forensic scores with filing evidence, solving for what's priced in, diffing filings, and not misapplying industrial models to banks.
+Six cases that check what the plugin should add over plain Claude: testing beat quality, explaining forensic scores with filing evidence, solving for what's priced in, diffing filings, not misapplying industrial models to banks, and fact-checking a (synthetic) short report against the filings.
 
 Run from the repo root (needs a signed-in Claude Code CLI; runs count against your usage):
 ```bash
