@@ -1,13 +1,13 @@
 {
   "name": "earnings-desk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A free, open-source AI research desk for stocks and earnings. 20 skills and 8 specialist agents covering earnings previews and recaps, transcript decoding, guidance credibility, forensic accounting, insider flows, reverse DCF, comps, moat analysis, bull-vs-bear debate and thesis tracking. Runs on SEC EDGAR with no paid data.",
   "author": {
     "name": "Bertan Berker",
     "url": "https://github.com/MozartofCode"
   },
-  "homepage": "https://github.com/MozartofCode/earnings-desk",
-  "repository": "https://github.com/MozartofCode/earnings-desk",
+  "homepage": "https://github.com/MozartofCode/Earnings-Intelligence-Agent",
+  "repository": "https://github.com/MozartofCode/Earnings-Intelligence-Agent",
   "license": "MIT",
   "keywords": ["stocks", "earnings", "equity-research", "sec-edgar", "valuation", "dcf", "forensic-accounting", "investing", "finance"]
 }

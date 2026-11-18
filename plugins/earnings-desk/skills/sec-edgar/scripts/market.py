@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import edgar  # noqa: E402
 
 KEYS = {k: os.environ.get(k) for k in ("FMP_API_KEY", "FINNHUB_API_KEY", "ALPHAVANTAGE_API_KEY")}
-CLIENT_UA = "earnings-desk/1.0 (+https://github.com/MozartofCode/earnings-desk)"
+CLIENT_UA = "earnings-desk/1.0 (+https://github.com/MozartofCode/Earnings-Intelligence-Agent)"
 
 
 def get_json(url, ttl_hours=1, ua=CLIENT_UA):

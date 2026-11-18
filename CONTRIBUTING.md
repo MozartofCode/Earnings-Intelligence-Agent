@@ -56,10 +56,10 @@ Use these sections, in this order:
 
 ## Before you open a PR
 ```bash
-./scripts/validate.sh        # frontmatter lint + `claude plugin validate`
+claude plugin validate .                       # marketplace + manifest
+claude plugin validate ./plugins/earnings-desk # plugin, skills and agents
 ```
-Then run your skill on two very different tickers (e.g. a mega-cap and a small-cap, or a bank and a software company) and attach the HTML reports to the PR.
+Check that your skill's `name` matches its folder and its description is ≤ 1024 characters. Then run the skill on two very different tickers (e.g. a mega-cap and a small-cap, or a bank and a software company) and attach the HTML reports to the PR.
 
 ## Releasing
-1. Bump `version` in `plugins/earnings-desk/.claude-plugin/plugin.json` and add a CHANGELOG entry.
-2. Tag `vX.Y.Z`. The release workflow attaches one zip per skill for Claude.ai upload.
+Bump `version` in `plugins/earnings-desk/.claude-plugin/plugin.json` (Claude Code only updates installed plugins when the version changes) and add a CHANGELOG entry.
