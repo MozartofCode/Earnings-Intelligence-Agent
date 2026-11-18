@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NVDA · Scores look scary, the filings mostly don't</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* earnings-desk report template: one look for every skill's output. */
+:root {
+  --paper: #f4f1ea;
+  --paper-2: #ebe6db;
+  --card: #fbfaf6;
+  --ink: #16140f;
+  --ink-2: #4a463c;
+  --ink-3: #847d6d;
+  --rule: #d8d1c1;
+  --accent: #b5501c;
+  --accent-soft: #f1dccd;
+  --pos: #1f7a4a;
+  --pos-soft: #dbeee2;
+  --neg: #b42a2a;
+  --neg-soft: #f5dcd8;
+  --warn: #9a6a00;
+  --warn-soft: #f3e7c4;
+  --chart-1: #b5501c; --chart-2: #2f5d8a; --chart-3: #1f7a4a; --chart-4: #8a5a9e; --chart-5: #847d6d;
+  --serif: "Instrument Serif", Georgia, serif;
+  --sans: "Inter Tight", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1210; --paper-2: #151a16; --card: #161b17; --ink: #ece8dc; --ink-2: #b9b4a5; --ink-3: #7d796d;
+    --rule: #28302a; --accent: #f08a4b; --accent-soft: #3a2416; --pos: #4fc283; --pos-soft: #14301f;
+    --neg: #f06a62; --neg-soft: #3a1714; --warn: #e2b23c; --warn-soft: #33290f;
+    --chart-1: #f08a4b; --chart-2: #6fa3d6; --chart-3: #4fc283; --chart-4: #c294d6; --chart-5: #7d796d;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1210; --paper-2: #151a16; --card: #161b17; --ink: #ece8dc; --ink-2: #b9b4a5; --ink-3: #7d796d;
+  --rule: #28302a; --accent: #f08a4b; --accent-soft: #3a2416; --pos: #4fc283; --pos-soft: #14301f;
+  --neg: #f06a62; --neg-soft: #3a1714; --warn: #e2b23c; --warn-soft: #33290f;
+  --chart-1: #f08a4b; --chart-2: #6fa3d6; --chart-3: #4fc283; --chart-4: #c294d6; --chart-5: #7d796d;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.6 var(--sans); }
+a { color: var(--accent); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px 80px; }
+
+/* Masthead */
+.tape { border-bottom: 1px solid var(--rule); font: 500 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.tape .wrap { display: flex; gap: 18px; align-items: center; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
+.tape .brand { color: var(--ink); font-weight: 700; }
+.tape .brand b { color: var(--accent); }
+.tape .spacer { flex: 1; }
+.theme-btn { font: inherit; color: var(--ink-2); background: none; border: 1px solid var(--rule); border-radius: 99px; padding: 6px 12px; cursor: pointer; }
+.theme-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+
+header.hero { padding: 44px 0 28px; border-bottom: 2px solid var(--ink); display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
+.plate { display: inline-flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .06em; margin-bottom: 18px; }
+.plate .tk { background: var(--ink); color: var(--paper); padding: 6px 9px; border-radius: 4px; }
+.plate .ex { color: var(--ink-3); }
+h1 { font: 400 clamp(38px, 6vw, 64px)/1.02 var(--serif); margin: 0; letter-spacing: -.01em; }
+h1 em { color: var(--accent); }
+.subtitle { margin-top: 12px; color: var(--ink-2); font-size: 17px; max-width: 64ch; }
+.meta { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12px/1.4 var(--mono); color: var(--ink-3); }
+.stamp { text-align: center; border: 2px solid currentColor; border-radius: 8px; padding: 12px 18px; transform: rotate(-2deg); min-width: 150px; }
+.stamp .lbl { font: 700 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.stamp .val { font: 400 34px/1.05 var(--serif); margin-top: 6px; }
+.stamp .sub { font: 12px/1.3 var(--mono); margin-top: 4px; opacity: .85; }
+.tone-pos { color: var(--pos); } .tone-neg { color: var(--neg); } .tone-warn { color: var(--warn); } .tone-neutral { color: var(--ink-2); } .tone-accent { color: var(--accent); }
+
+/* KPI strip */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-bottom: 1px solid var(--rule); }
+.kpi { padding: 18px 16px 16px 0; border-right: 1px solid var(--rule); }
+.kpi:last-child { border-right: 0; }
+.kpi + .kpi { padding-left: 16px; }
+.kpi .l { font: 500 11px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.kpi .v { font: 500 26px/1.15 var(--mono); margin-top: 8px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kpi .d { font: 500 12.5px/1.2 var(--mono); margin-top: 4px; }
+
+/* Summary */
+.summary { display: grid; grid-template-columns: 220px 1fr; gap: 28px; padding: 32px 0; border-bottom: 1px solid var(--rule); }
+.kicker { font: 700 11px/1.3 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.summary .body { font: 400 22px/1.45 var(--serif); }
+.summary .body p { margin: 0 0 .6em; }
+.summary .body ul { font: 16px/1.6 var(--sans); padding-left: 18px; }
+
+/* Layout */
+.grid { display: grid; grid-template-columns: 220px 1fr; gap: 28px; }
+nav.toc { position: sticky; top: 16px; align-self: start; padding-top: 32px; font: 13px/1.5 var(--sans); }
+nav.toc a { display: block; color: var(--ink-3); text-decoration: none; padding: 4px 0 4px 10px; border-left: 2px solid transparent; }
+nav.toc a:hover, nav.toc a.on { color: var(--ink); border-left-color: var(--accent); }
+section.block { padding: 32px 0 8px; border-bottom: 1px solid var(--rule); min-width: 0; }
+section.block:last-child { border-bottom: 0; }
+h2 { font: 400 32px/1.15 var(--serif); margin: 6px 0 14px; }
+.md h3 { font: 600 16px/1.3 var(--sans); margin: 22px 0 6px; }
+.md p, .md li { color: var(--ink-2); max-width: 74ch; }
+.md strong { color: var(--ink); }
+.md blockquote { margin: 16px 0; padding: 10px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; color: var(--ink); }
+.md code { font: 13px var(--mono); background: var(--paper-2); padding: 1px 5px; border-radius: 4px; }
+.md table, table.data { width: 100%; border-collapse: collapse; font: 13.5px/1.45 var(--sans); margin: 14px 0; }
+.tablewrap { overflow-x: auto; margin: 14px 0; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); }
+.tablewrap table { margin: 0; }
+th { text-align: left; font: 600 11px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding: 10px 12px; border-bottom: 1px solid var(--rule); background: var(--paper-2); white-space: nowrap; }
+td { padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; font: 600 11px/1 var(--mono); padding: 4px 7px; border-radius: 99px; letter-spacing: .04em; text-transform: uppercase; }
+.pill.pos { background: var(--pos-soft); color: var(--pos); } .pill.neg { background: var(--neg-soft); color: var(--neg); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.neutral { background: var(--paper-2); color: var(--ink-2); }
+.chart { position: relative; height: 300px; margin: 16px 0; padding: 12px; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; }
+.callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 14px 0; }
+.callout { background: var(--card); border: 1px solid var(--rule); border-top: 3px solid var(--ink-3); border-radius: 8px; padding: 14px 16px; }
+.callout.pos { border-top-color: var(--pos); } .callout.neg { border-top-color: var(--neg); } .callout.warn { border-top-color: var(--warn); } .callout.accent { border-top-color: var(--accent); }
+.callout .t { font: 600 14px/1.3 var(--sans); margin-bottom: 4px; }
+.callout .b { font-size: 14px; color: var(--ink-2); }
+.score { display: flex; align-items: center; gap: 12px; margin: 10px 0; font: 13px var(--sans); }
+.score .name { width: 200px; color: var(--ink-2); }
+.score .bar { flex: 1; height: 8px; border-radius: 99px; background: var(--paper-2); overflow: hidden; }
+.score .bar i { display: block; height: 100%; border-radius: 99px; }
+.score .num { min-width: 90px; max-width: 45%; text-align: right; font: 500 13px var(--mono); white-space: nowrap; }
+
+/* Sources + footer */
+.sources ol { padding-left: 20px; font: 12.5px/1.6 var(--mono); color: var(--ink-3); }
+.sources li { word-break: break-word; }
+footer { margin-top: 40px; padding-top: 18px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-3); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 820px) {
+  header.hero { grid-template-columns: 1fr; }
+  .stamp { justify-self: start; }
+  .summary, .grid { grid-template-columns: 1fr; gap: 10px; }
+  nav.toc { display: none; }
+  .kpi { border-right: 0; border-bottom: 1px solid var(--rule); padding-left: 0 !important; }
+  .score .name { width: 120px; }
+}
+@media print {
+  .tape, nav.toc, .theme-btn { display: none !important; }
+  .grid { grid-template-columns: 1fr; }
+  body { background: #fff; }
+  section.block { break-inside: avoid-page; }
+}
+</style>
+</head>
+<body>
+<div class="tape"><div class="wrap">
+  <span class="brand">earnings<b>/</b>desk</span>
+  <span id="tape-skill"></span>
+  <span id="tape-date"></span>
+  <span class="spacer"></span>
+  <button class="theme-btn" id="theme-btn" type="button" aria-label="Toggle color theme">◐ theme</button>
+</div></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="plate"><span class="tk" id="ticker"></span><span class="ex" id="exchange"></span></div>
+      <h1 id="title"></h1>
+      <div class="subtitle" id="subtitle"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div id="stamp"></div>
+  </header>
+  <div class="kpis" id="kpis"></div>
+  <div class="summary" id="summary-wrap">
+    <div class="kicker">The short version</div>
+    <div class="body md" id="summary"></div>
+  </div>
+  <div class="grid">
+    <nav class="toc" id="toc" aria-label="Sections"></nav>
+    <main id="sections"></main>
+  </div>
+  <footer>
+    <span id="footer-left"></span>
+    <span>Not investment advice. Generated by AI from public data; verify before acting.</span>
+  </footer>
+</div>
+
+<!-- The skill writes its report JSON here; render_report.py fills it in. -->
+<script type="application/json" id="report-data">{"skill": "forensic-accounting", "ticker": "NVDA", "company": "NVIDIA Corp", "exchange": "Nasdaq", "date": "2026-11-17", "title": "Scores look scary, the *filings mostly don't*", "subtitle": "FY26 (year ended Jan 25, 2026) vs FY25 · 10-K filed Feb 25, 2026", "meta": ["Price $155.46 (Yahoo public endpoint, Nov 17)", "Mkt cap ≈ $3.75T (price × 24.1B SEC shares)", "SIC 3674 · Semiconductors", "Auditor: PwC since 2004"], "verdict": {"label": "Forensic verdict", "value": "Watch", "sub": "Growth-driven screens · 3 judgment areas", "tone": "warn"}, "kpis": [{"label": "Beneish M", "value": "−1.15", "delta": "−1.95 ex growth & goodwill", "tone": "warn"}, {"label": "Altman Z''", "value": "12.9", "delta": "safe (> 2.6)", "tone": "pos"}, {"label": "Piotroski F", "value": "5 / 9", "delta": "neutral", "tone": "neutral"}, {"label": "Sloan accruals", "value": "10.9%", "delta": "warning (> 10%)", "tone": "neg"}, {"label": "OCF / net income", "value": "0.86", "delta": "FY26 · 0.88 FY25", "tone": "warn"}], "summary": "On the raw screens NVDA looks alarming: a Beneish M-score of **−1.15** sits in the \"elevated\" zone and Sloan accruals are **10.9%**. Decompose them and most of the alarm is **hyper-growth** (sales +65%) plus one accounting event: **$14.4B of goodwill booked on a non-exclusive license-and-hire deal with Groq**. Receivables quality is clean (DSRI 1.01), there are no restatements, auditor changes or late filings, and controls were found effective. The verdict is **Watch, not Red**, driven by three judgment areas: inventory and purchase-commitment provisions (the auditor's only critical audit matter, $7.2B of provisions in FY26), the Groq goodwill, and **$27B of multi-year cloud commitments**.", "sections": [{"heading": "Scorecard", "kicker": "Screens + checklist", "scores": [{"name": "Beneish M (−1.15; risk above −1.78)", "pct": 70, "value": "−1.15 elevated", "tone": "warn"}, {"name": "Altman Z'' (12.9; distress below 1.1)", "pct": 5, "value": "12.9 safe", "tone": "pos"}, {"name": "Piotroski F (5/9)", "pct": 45, "value": "5 neutral", "tone": "neutral"}, {"name": "Sloan accrual ratio", "pct": 75, "value": "10.9% warning", "tone": "neg"}, {"name": "DIO drift (FY25 → FY26)", "pct": 55, "value": "113 → 125 days", "tone": "warn"}], "tables": [{"caption": "Qualitative checklist", "columns": ["Item", "Status", "Evidence", "Source"], "rows": [["Revenue recognition", {"text": "Clean", "tone": "pos", "pill": true}, "Receivables +67% vs revenue +65% (DSRI 1.01); DSO flat at ~65 days", "XBRL via scores.py"], ["Reserves & provisions", {"text": "Watch", "tone": "warn", "pill": true}, "Inventory + purchase-obligation provisions $7.2B (FY25 $3.7B), incl. $4.5B H20 charge; net GM impact −2.6 pts. Sole CAM", "10-K MD&A; auditor's report"], ["Capitalization / M&A", {"text": "Watch", "tone": "warn", "pill": true}, "Groq non-exclusive license + hires recorded as a business combination: $14.4B goodwill + $2.5B intangible; no equity or customers acquired", "10-K Note on business combination"], ["Off-balance commitments", {"text": "Watch", "tone": "warn", "pill": true}, "$27B multi-year cloud service commitments through FY32; capacity purchase obligations and possible financial guarantees disclosed as a risk", "10-K commitments note; Item 1A"], ["Auditor", {"text": "Clean", "tone": "pos", "pill": true}, "PwC since 2004; unqualified ICFR opinion", "10-K Item 8 / 9A"], ["Restatements & controls", {"text": "Clean", "tone": "pos", "pill": true}, "No 8-K 4.01/4.02 in 62 8-Ks (Nov 2020–Nov 2026); no 10-K/A, 10-Q/A or NT filings", "EDGAR filing index"], ["Dilution & SBC", {"text": "Clean", "tone": "pos", "pill": true}, "SBC 3.0% of revenue (10.0% in FY23); diluted shares −1.2% y/y", "XBRL"], ["Management turnover", {"text": "Not reviewed", "tone": "neutral", "pill": true}, "16 8-Ks with Item 5.02 since 2020; not reviewed individually in this run", "EDGAR filing index"]]}]}, {"heading": "Beneish decomposition", "kicker": "What drives the −1.15", "tables": [{"columns": ["Component", "Value", "Concern above", "Read"], "rows": [["DSRI (receivables vs sales)", "1.01", "1.20", {"text": "Clean", "tone": "pos", "pill": true}], ["GMI (gross margin decline)", "1.06", "1.10", {"text": "Mild: Blackwell mix + H20 charge", "tone": "neutral", "pill": true}], ["AQI (asset quality)", "1.52", "1.20", {"text": "Groq goodwill/intangible", "tone": "warn", "pill": true}], ["SGI (sales growth)", "1.66", "pressure only", {"text": "Hyper-growth", "tone": "warn", "pill": true}], ["DEPI (depreciation)", "1.06", "1.10", {"text": "Clean", "tone": "pos", "pill": true}], ["SGAI (SG&A vs sales)", "0.79", "1.10", {"text": "Clean", "tone": "pos", "pill": true}], ["LVGI (leverage)", "0.81", "1.10", {"text": "Clean", "tone": "pos", "pill": true}], ["TATA (accruals / assets)", "0.084", "0.031", {"text": "NI ahead of OCF", "tone": "neg", "pill": true}]]}], "callouts": [{"title": "Known false positive: growth", "body": "SGI carries a 0.892 weight. With SGI set to 1.0 the score is **−1.74**, right at the line.", "tone": "accent"}, {"title": "Then strip the Groq goodwill", "body": "Also setting AQI to 1.0 gives **−1.95**, inside the low-risk zone. What remains is **TATA**, which the accruals section below examines.", "tone": "accent"}], "after": "_Recomputations are estimates from the published Beneish weights applied to scores.py components._"}, {"heading": "Distress and strength", "kicker": "Altman & Piotroski", "tables": [{"caption": "Altman (original Z = 50.1 is distorted by market cap: X4 = 75.7; Z'' is the fairer read)", "columns": ["Component", "Value"], "rows": [["X1 working capital / assets", "0.45"], ["X2 retained earnings / assets", "0.71"], ["X3 EBIT / assets", "0.63"], ["X4 market value / liabilities", "75.7"], ["X5 sales / assets", "1.04"], ["Z'' (non-manufacturer form)", "12.85 · safe"]]}, {"caption": "Piotroski F = 5", "columns": ["Check", "Result"], "rows": [["ROA > 0", {"text": "Pass", "tone": "pos"}], ["CFO > 0", {"text": "Pass", "tone": "pos"}], ["ROA improving", {"text": "Pass", "tone": "pos"}], ["CFO > net income", {"text": "Fail", "tone": "neg"}], ["Leverage falling", {"text": "Pass", "tone": "pos"}], ["Current ratio rising", {"text": "Fail", "tone": "neg"}], ["No dilution", {"text": "Pass", "tone": "pos"}], ["Gross margin rising", {"text": "Fail", "tone": "neg"}], ["Asset turnover rising", {"text": "Fail", "tone": "neg"}]]}], "after": "Piotroski was built for cheap value stocks. Three of NVDA's four fails (gross margin, asset turnover, current ratio) are typical of a company at peak margins scaling its balance sheet. The fourth, **CFO < net income**, is the same signal as TATA and Sloan."}, {"heading": "Accruals and working capital", "kicker": "Is profit turning into cash?", "charts": [{"type": "bar", "title": "Net income vs operating cash flow ($B)", "yFormat": "usd", "labels": ["FY21", "FY22", "FY23", "FY24", "FY25", "FY26"], "datasets": [{"label": "Net income", "data": [4.3, 9.8, 4.4, 29.8, 72.9, 120.1]}, {"label": "Operating cash flow", "data": [5.8, 9.1, 5.6, 28.1, 64.1, 102.7]}]}], "tables": [{"columns": ["Fiscal year", "DSO", "DIO", "DPO", "FCF / NI", "SBC % rev"], "rows": [["FY22", "63", "101", "69", "0.83", "7.5%"], ["FY23", "52", "162", "37", "0.87", "10.0%"], ["FY24", "60", "116", "59", "0.91", "5.8%"], ["FY25", "65", "113", "71", "0.83", "3.6%"], ["FY26", "65", {"text": "125", "tone": "warn"}, {"text": "57", "tone": "warn"}, "0.81", "3.0%"]]}], "body": "Net income has run **ahead of operating cash flow for three straight years** ($17.4B gap in FY26). Where that gap comes from matters: **inventory doubled to $21.4B** (+112% vs cost of revenue +91%) and payables days fell, so working capital absorbed cash as the Blackwell ramp built ahead of demand. Receivables are *not* the issue. This is a real but explainable accrual pattern for a company in a hyper-growth build cycle. It becomes a red flag only if inventory keeps outgrowing cost of revenue once growth slows."}, {"heading": "Filing evidence", "kicker": "What the 10-K says", "callouts": [{"title": "Critical audit matter: inventory provisions", "body": "PwC's only CAM covers provisions for excess or obsolete inventory and excess purchase commitments, citing *significant judgment* on future demand and export restrictions. FY26 provisions were **$7.2B** (incl. the $4.5B H20 charge) vs $3.7B in FY25.", "tone": "warn"}, {"title": "Groq: a license booked as goodwill", "body": "In December 2025 NVIDIA signed a **non-exclusive** license for Groq's LPU technology and hired certain Groq employees. *No customer contracts, existing products, or equity interests were purchased*, yet it recorded **$14.4B of goodwill** and a $2.5B intangible. Goodwill is not amortized, so this choice keeps the cost off future income statements unless it is impaired.", "tone": "warn"}, {"title": "$27B of cloud commitments", "body": "Multi-year cloud service agreements ($7B due in FY27, tapering through FY32) to support R&D, plus disclosed capacity purchase obligations and requests to finance partners' datacenter buildouts. Watch for any circularity between capacity NVIDIA buys and revenue it books from the same partners.", "tone": "warn"}, {"title": "Clean on the hard red flags", "body": "No auditor change, no restatement (8-K 4.02), no 10-K/A or 10-Q/A, no late filings, and an unqualified opinion on internal control as of Jan 25, 2026.", "tone": "pos"}]}, {"heading": "Non-GAAP gap", "kicker": "Not computed in this example", "body": "This example run did not tabulate the GAAP-to-non-GAAP reconciliation from the last 4–8 earnings releases (workflow step 5). With SBC at just 3.0% of revenue, the gap is likely modest, but **verify it** before relying on adjusted EPS: `edgar.py earnings-release NVDA --index 0` through `--index 7`."}, {"heading": "What would change our mind", "kicker": "Upgrade / downgrade triggers", "callouts": [{"title": "Upgrade to Clean", "body": "OCF catches up with net income (OCF/NI ≥ 1.0) as Blackwell inventory sells through, and DIO returns below ~110 days.", "tone": "pos"}, {"title": "Downgrade to Red", "body": "Inventory keeps outgrowing cost of revenue while revenue growth slows; DSO starts rising; large provision *releases* boost gross margin; or any impairment, restatement or auditor change around the Groq accounting.", "tone": "neg"}], "after": "**Next:** `filing-diff NVDA --section 1A` to see how the export-control and supply language evolved, `insider-ownership` for selling into the numbers, and `capital-allocation` to judge the Groq deal and buybacks."}], "sources": [{"label": "NVIDIA 10-K for FY ended 2026-01-25, filed 2026-02-25 (accn 0001045810-26-000021): MD&A, auditor's report, business combination and commitments notes", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810&type=10-K"}, {"label": "SEC XBRL company facts for scores and multi-year statements (scores.py, statements.py)", "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json"}, {"label": "EDGAR filing index: 62 8-Ks Nov 2020–Nov 2026; no NT, 10-K/A or 10-Q/A filings", "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810&type=8-K"}, "Price and market cap: Yahoo Finance public chart endpoint via market.py (unofficial, best-effort) × SEC-reported shares outstanding, retrieved 2026-11-17", "Beneish (1999), Altman (1968; Z'' 1995), Piotroski (2000), Sloan (1996) per the skill's forensic playbook"]}</script>
+<script>
+(function () {
+  "use strict";
+  var data = JSON.parse(document.getElementById("report-data").textContent);
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); };
+  var md = function (s) {
+    if (!s) return "";
+    var html = window.marked ? marked.parse(String(s)) : "<p>" + esc(s) + "</p>";
+    return window.DOMPurify ? DOMPurify.sanitize(html) : html;
+  };
+  var TONES = ["pos", "neg", "warn", "neutral", "accent"];
+  var tone = function (t) { return TONES.indexOf(t) >= 0 ? t : "neutral"; };
+
+  // Theme toggle (remembered per viewer, safe if storage is blocked)
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem("ed-theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+  $("theme-btn").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") ? root.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = dark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("ed-theme", next); } catch (e) {}
+    drawCharts();
+  });
+
+  // Masthead
+  document.title = data.title ? (data.ticker ? data.ticker + " · " : "") + String(data.title).replace(/\*(.+?)\*/g, "$1") : document.title;
+  $("tape-skill").textContent = data.skill ? "/" + data.skill : "";
+  $("tape-date").textContent = data.date || "";
+  $("ticker").textContent = data.ticker || "—";
+  $("exchange").textContent = [data.company, data.exchange].filter(Boolean).join(" · ");
+  $("title").innerHTML = esc(data.title || "Research report").replace(/\*(.+?)\*/g, "<em>$1</em>");
+  $("subtitle").textContent = data.subtitle || "";
+  $("meta").innerHTML = (data.meta || []).map(function (m) { return "<span>" + esc(m) + "</span>"; }).join("");
+  $("footer-left").textContent = "earnings-desk · " + (data.skill || "report") + (data.date ? " · " + data.date : "");
+
+  if (data.verdict) {
+    var v = data.verdict;
+    $("stamp").innerHTML = '<div class="stamp tone-' + tone(v.tone) + '"><div class="lbl">' + esc(v.label || "Verdict") + '</div><div class="val">' + esc(v.value) + "</div>" + (v.sub ? '<div class="sub">' + esc(v.sub) + "</div>" : "") + "</div>";
+  }
+
+  $("kpis").innerHTML = (data.kpis || []).map(function (k) {
+    return '<div class="kpi"><div class="l">' + esc(k.label) + '</div><div class="v">' + esc(k.value) + "</div>" + (k.delta ? '<div class="d tone-' + tone(k.tone) + '">' + esc(k.delta) + "</div>" : "") + "</div>";
+  }).join("");
+  if (!(data.kpis || []).length) $("kpis").style.display = "none";
+
+  if (data.summary) $("summary").innerHTML = md(data.summary); else $("summary-wrap").style.display = "none";
+
+  // Sections
+  var charts = [];
+  function renderTable(t) {
+    var cols = t.columns || [];
+    var numeric = cols.map(function (_, i) { return (t.rows || []).every(function (r) { var c = r[i]; c = (c && typeof c === "object") ? c.text : c; return c == null || c === "" || /^[\s$€£¥+\-–(]*[\d.,]+\s*[%xX)BMKbmk]*\s*(bps)?$/.test(String(c)); }); });
+    var head = "<tr>" + cols.map(function (c, i) { return '<th class="' + (numeric[i] ? "num" : "") + '">' + esc(c) + "</th>"; }).join("") + "</tr>";
+    var body = (t.rows || []).map(function (r) {
+      return "<tr>" + r.map(function (c, i) {
+        var cls = numeric[i] ? "num" : "";
+        if (c && typeof c === "object") {
+          var inner = c.pill ? '<span class="pill ' + tone(c.tone) + '">' + esc(c.text) + "</span>" : '<span class="tone-' + tone(c.tone) + '">' + esc(c.text) + "</span>";
+          return '<td class="' + cls + '">' + inner + "</td>";
+        }
+        return '<td class="' + cls + '">' + esc(c) + "</td>";
+      }).join("") + "</tr>";
+    }).join("");
+    return (t.caption ? '<div class="kicker" style="margin-top:18px">' + esc(t.caption) + "</div>" : "") + '<div class="tablewrap"><table class="data"><thead>' + head + "</thead><tbody>" + body + "</tbody></table></div>";
+  }
+  function renderScores(list) {
+    return list.map(function (s) {
+      var pct = Math.max(0, Math.min(100, Number(s.pct) || 0));
+      return '<div class="score"><span class="name">' + esc(s.name) + '</span><span class="bar"><i style="width:' + pct + "%;background:var(--" + tone(s.tone) + ', var(--ink-3))"></i></span><span class="num tone-' + tone(s.tone) + '">' + esc(s.value) + "</span></div>";
+    }).join("");
+  }
+  function renderCallouts(list) {
+    return '<div class="callouts">' + list.map(function (c) { return '<div class="callout ' + tone(c.tone) + '"><div class="t">' + esc(c.title) + '</div><div class="b">' + md(c.body) + "</div></div>"; }).join("") + "</div>";
+  }
+
+  var html = "", toc = "";
+  (data.sections || []).forEach(function (s, i) {
+    var id = "s" + i;
+    toc += '<a href="#' + id + '">' + esc(s.heading) + "</a>";
+    html += '<section class="block" id="' + id + '">' + (s.kicker ? '<div class="kicker">' + esc(s.kicker) + "</div>" : "") + "<h2>" + esc(s.heading) + "</h2>";
+    if (s.callouts) html += renderCallouts(s.callouts);
+    if (s.body) html += '<div class="md">' + md(s.body) + "</div>";
+    if (s.scores) html += renderScores(s.scores);
+    (s.tables || (s.table ? [s.table] : [])).forEach(function (t) { html += renderTable(t); });
+    (s.charts || (s.chart ? [s.chart] : [])).forEach(function (c) { var cid = "c" + charts.length; charts.push({ id: cid, spec: c }); html += '<div class="chart"><canvas id="' + cid + '" aria-label="' + esc(c.title || "chart") + '"></canvas></div>'; });
+    if (s.after) html += '<div class="md">' + md(s.after) + "</div>";
+    html += "</section>";
+  });
+  if ((data.sources || []).length) {
+    toc += '<a href="#sources">Sources</a>';
+    html += '<section class="block sources" id="sources"><div class="kicker">Every number traces back here</div><h2>Sources</h2><ol>' + data.sources.map(function (s) {
+      var label = typeof s === "string" ? s : (s.label || s.url);
+      var url = typeof s === "string" ? (/^https?:/.test(s) ? s : null) : s.url;
+      return "<li>" + (url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + "</a>" : esc(label)) + "</li>";
+    }).join("") + "</ol></section>";
+  }
+  $("sections").innerHTML = html;
+  $("toc").innerHTML = toc;
+
+  // Highlight the current section in the TOC
+  if ("IntersectionObserver" in window) {
+    var links = Array.prototype.slice.call(document.querySelectorAll("nav.toc a"));
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) links.forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id); }); });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    document.querySelectorAll("section.block").forEach(function (s) { io.observe(s); });
+  }
+
+  // Charts: spec = {type, title, labels, datasets:[{label, data, type?}], yFormat?: "pct"|"usd"|"x"}
+  var live = [];
+  function cssVar(n) { return getComputedStyle(root).getPropertyValue(n).trim(); }
+  function fmt(v, f) { if (f === "pct") return v + "%"; if (f === "usd") return "$" + v; if (f === "x") return v + "x"; return v; }
+  function drawCharts() {
+    if (!window.Chart) return;
+    live.forEach(function (c) { c.destroy(); }); live = [];
+    var palette = ["--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5"].map(cssVar);
+    Chart.defaults.font.family = cssVar("--sans");
+    Chart.defaults.color = cssVar("--ink-3");
+    charts.forEach(function (c) {
+      var s = c.spec, type = s.type || "bar";
+      var ds = (s.datasets || []).map(function (d, i) {
+        var col = palette[i % palette.length];
+        return Object.assign({ backgroundColor: (d.type || type) === "line" ? col : col + "cc", borderColor: col, borderWidth: (d.type || type) === "line" ? 2.5 : 0, borderRadius: 3, pointRadius: 2.5, tension: 0.25 }, d);
+      });
+      live.push(new Chart(document.getElementById(c.id), {
+        type: type,
+        data: { labels: s.labels || [], datasets: ds },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { title: { display: !!s.title, text: s.title, align: "start", color: cssVar("--ink"), font: { size: 13, weight: "600" } }, legend: { display: ds.length > 1, position: "bottom", labels: { boxWidth: 10, boxHeight: 10 } } },
+          scales: type === "pie" || type === "doughnut" ? {} : { x: { grid: { display: false } }, y: { grid: { color: cssVar("--rule") }, ticks: { callback: function (v) { return fmt(v, s.yFormat); } } } }
+        }
+      }));
+    });
+  }
+  drawCharts();
+  if (window.matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawCharts);
+})();
+</script>
+</body>
+</html>
