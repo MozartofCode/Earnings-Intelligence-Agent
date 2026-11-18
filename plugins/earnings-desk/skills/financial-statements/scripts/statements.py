@@ -55,9 +55,9 @@ def nearest(series_idx, end, tol_days=20):
 def build_rows(facts, which):
     data = facts[which]
     flows = ["revenue", "cost_of_revenue", "gross_profit", "rnd", "sga", "selling_marketing", "g_and_a", "operating_income", "interest_expense", "pretax_income", "income_tax",
-             "net_income", "eps_diluted", "shares_diluted", "da", "sbc", "operating_cash_flow", "capex", "acquisitions", "buybacks", "dividends_paid"]
+             "net_income", "eps_diluted", "shares_diluted", "da", "sbc", "operating_cash_flow", "capex", "acquisitions", "buybacks", "dividends_paid", "finance_lease_principal", "finance_lease_rou_additions"]
     stocks = ["cash", "short_term_investments", "receivables", "inventory", "current_assets", "ppe_net", "goodwill", "total_assets", "accounts_payable",
-              "current_liabilities", "long_term_debt", "short_term_debt", "total_liabilities", "retained_earnings", "equity", "shares_outstanding"]
+              "current_liabilities", "long_term_debt", "short_term_debt", "total_liabilities", "retained_earnings", "equity", "shares_outstanding", "finance_lease_liability"]
     idx = {m: index_by_end(data.get(m)) for m in flows + stocks}
     spine = data.get("revenue") or data.get("net_income") or []
     rows = []
@@ -82,6 +82,9 @@ def enrich(rows, periods_per_year):
         fcf = None if r["operating_cash_flow"] is None else r["operating_cash_flow"] - (r["capex"] or 0)
         r["fcf"] = fcf
         r["fcf_after_sbc"] = None if fcf is None else fcf - (r["sbc"] or 0)
+        # Assets acquired under finance leases are capex in substance but never hit
+        # "purchases of PP&E"; for data-center-heavy companies the gap is large.
+        r["fcf_incl_finance_leases"] = None if fcf is None or r.get("finance_lease_rou_additions") is None else fcf - r["finance_lease_rou_additions"]
         r["ebitda"] = None if r["operating_income"] is None else r["operating_income"] + (r["da"] or 0)
         debt = (r["long_term_debt"] or 0) + (r["short_term_debt"] or 0)
         liquid = (r["cash"] or 0) + (r["short_term_investments"] or 0)
@@ -154,11 +157,12 @@ def ttm(qrows):
     if len(last4) < 4:
         return None
     out = {"periods": [r["period_end"] for r in last4]}
-    for m in ("revenue", "gross_profit", "operating_income", "net_income", "eps_diluted", "operating_cash_flow", "capex", "sbc", "fcf", "ebitda", "buybacks", "dividends_paid", "da"):
+    for m in ("revenue", "gross_profit", "operating_income", "net_income", "eps_diluted", "operating_cash_flow", "capex", "sbc", "fcf", "ebitda", "buybacks", "dividends_paid", "da",
+              "finance_lease_rou_additions", "finance_lease_principal", "fcf_incl_finance_leases"):
         vals = [r.get(m) for r in last4]
         out[m] = round(sum(vals), 4) if all(v is not None for v in vals) else None
     latest = qrows[-1]
-    for m in ("cash", "short_term_investments", "total_debt", "net_debt", "equity", "shares_outstanding", "shares_diluted"):
+    for m in ("cash", "short_term_investments", "total_debt", "net_debt", "equity", "shares_outstanding", "shares_diluted", "finance_lease_liability"):
         out[m] = latest.get(m)
     out["fcf_margin_pct"] = pct(div(out["fcf"], out["revenue"]))
     out["operating_margin_pct"] = pct(div(out["operating_income"], out["revenue"]))
@@ -185,6 +189,7 @@ def main():
                notes=["Quarters flagged derived_quarter=true were computed as FY or YTD minus prior periods (EDGAR reports cash flows year-to-date).",
                       "fy = calendar year in which the fiscal period ends (e.g. NVDA FY26 ends Jan 2026 -> 2026). A few retailers name their year after the prior calendar year; check the 10-K cover.",
                       "FCF = operating cash flow - capex. cash_conversion = FCF / net income; ocf_to_ni = operating cash flow / net income.",
+                      "fcf_incl_finance_leases = FCF - assets acquired under finance leases (capex in substance). Large 'other investing' outflows (e.g. component prepayments) are not captured; check the cash-flow statement.",
                       "ROIC = NOPAT / average (equity + total debt); cash is not subtracted. Verify unusual values against the filing."])
     sic = str(edgar.submissions(co["cik"]).get("sic") or "")
     if sic[:2] in ("60", "61", "62", "63", "64", "67"):

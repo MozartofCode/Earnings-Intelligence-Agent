@@ -13,10 +13,10 @@ You are given `RUN_DIR`. Read `RUN_DIR/README.md` (tools, ticker, price), `RUN_D
 ## Skills to lean on
 `reverse-dcf` and `comps-valuation` (Glob their SKILL.md for the frameworks). Commands you own (pass the cited price from `quote.json` with `--price` so every run uses the same number):
 ```bash
-python3 $S/reverse-dcf/scripts/dcf.py T --price P                         > $RUN/data/dcf-reverse.json
-python3 $S/reverse-dcf/scripts/dcf.py T --price P --growth G --target-margin M > $RUN/data/dcf-<case>.json   # bear, base, bull
+python3 $S/reverse-dcf/scripts/dcf.py T --price P                         > $RUN/data/valuation-dcf-reverse.json
+python3 $S/reverse-dcf/scripts/dcf.py T --price P --growth G --target-margin M > $RUN/data/valuation-dcf-<case>.json   # bear, base, bull
 python3 $S/reverse-dcf/scripts/dcf.py T --price P --wacc 8  ;  --wacc 10   # discount-rate sensitivity
-python3 $S/comps-valuation/scripts/comps.py T PEER1 PEER2 PEER3 PEER4 PEER5 --target T > $RUN/data/comps.json
+python3 $S/comps-valuation/scripts/comps.py T PEER1 PEER2 PEER3 PEER4 PEER5 --target T > $RUN/data/valuation-comps.json
 ```
 The defaults are WACC 9%, terminal growth 3%, and SBC treated as a cost. Keep SBC as a cost unless you argue otherwise in writing. Refine the SIC peer list by business model (same customers, same economics), not by SIC code. Justify each peer in one line, and drop any that are not comparable.
 
@@ -32,7 +32,7 @@ Write `RUN_DIR/memos/valuation.md` exactly per the **specialist memo contract** 
 ```
 lens: valuation
 price: <$> (<source, date>)
-implied_growth_y1: <pct> at <margin> FCF margin
+implied_revenue_cagr: <pct> over <N> years at <margin> FCF margin (from reverse.implied_revenue_cagr_pct; quote this, not year-1 growth)
 implied_margin: <pct> at <growth>
 expectations: Easy | Plausible | Demanding | Heroic
 scenarios: bear <$> (<pct>) | base <$> (<pct>) | bull <$> (<pct>)

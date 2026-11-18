@@ -15,7 +15,7 @@ You are given `RUN_DIR`. Read `RUN_DIR/README.md` (tools, ticker), `RUN_DIR/DATA
 ```bash
 python3 $S/filing-diff/scripts/diff_sections.py T --form 10-K --section 1A     # risk-factor redline vs. prior 10-K
 python3 $S/filing-diff/scripts/diff_sections.py T --form 10-K --section mdna
-python3 $S/filing-diff/scripts/diff_sections.py T --form 10-Q --section mdna --old 4   # same quarter last year
+python3 $S/filing-diff/scripts/diff_sections.py T --form 10-Q --section mdna --old 3   # same quarter last year (3 10-Qs per year)
 python3 $S/sec-edgar/scripts/edgar.py filing-text T --form 10-K --section 9A   # controls and procedures
 ```
 Save their outputs to `RUN_DIR/data/` (e.g. `diff-10k-1a.json`) so the bear analyst can reuse them.

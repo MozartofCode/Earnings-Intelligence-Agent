@@ -11,6 +11,8 @@ Model (FCF to equity-holders, simple and transparent):
   * FCF margin moves linearly from today's TTM margin to the target margin by year 5, then holds.
   * FCF = OCF - capex, minus SBC by default (SBC is a real cost to shareholders).
   * Equity value = PV(FCF) + PV(terminal) - net debt. Discount rate = --wacc.
+    Net debt includes finance-lease liabilities by default (--exclude-leases to drop them)
+    plus anything passed with --extra-debt.
 Reverse mode solves for the year-1 growth (holding the target margin) and for the
 target margin (holding growth) that justify today's price.
 Pulls TTM inputs from SEC XBRL (via the sibling sec-edgar skill) and the price from
@@ -95,7 +97,10 @@ def load_inputs(a):
         price, price_src = qt.get("price"), qt.get("source")
         if price is None:
             edgar.die("No price available. Pass --price (and cite where it came from).", hint=qt.get("hint"))
-    return dict(ticker=co["ticker"], name=co["name"], revenue=ttm["revenue"], fcf=fcf, fcf_margin=fcf / ttm["revenue"], net_debt=ttm["net_debt"] or 0,
+    lease = (ttm.get("finance_lease_liability") or 0) if not a.exclude_leases else 0
+    nd = (ttm["net_debt"] or 0) + lease + (a.extra_debt or 0)
+    return dict(ticker=co["ticker"], name=co["name"], revenue=ttm["revenue"], fcf=fcf, fcf_margin=fcf / ttm["revenue"], net_debt=nd,
+                net_debt_components={"reported_net_debt": ttm["net_debt"] or 0, "finance_lease_liability": lease, "extra_debt": a.extra_debt or 0},
                 shares=shares, price=price, price_source=price_src, ttm_periods=ttm["periods"], sbc_deducted=not a.sbc_ignore, sbc=ttm.get("sbc"))
 
 
@@ -105,6 +110,8 @@ def main():
     p.add_argument("--manual", action="store_true")
     p.add_argument("--revenue", type=float); p.add_argument("--fcf-margin", type=float, help="percent"); p.add_argument("--net-debt", type=float); p.add_argument("--shares", type=float)
     p.add_argument("--price", type=float)
+    p.add_argument("--exclude-leases", action="store_true", help="don't count finance-lease liabilities as debt (counted by default)")
+    p.add_argument("--extra-debt", type=float, help="other debt-like claims in USD to subtract (pensions, minority interests, preferred)")
     p.add_argument("--wacc", type=float, default=9.0, help="percent, default 9")
     p.add_argument("--terminal-growth", type=float, default=3.0, help="percent, default 3")
     p.add_argument("--years", type=int, default=10)

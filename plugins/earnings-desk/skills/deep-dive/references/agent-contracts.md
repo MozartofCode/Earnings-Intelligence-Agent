@@ -11,13 +11,13 @@ This is the exact output contract for every role in a deep dive. Agents read it,
 ├── DATA-BRIEF.md          # cited fact sheet + data-quality log                               (data-analyst, Phase 1)
 ├── data/                  # raw script JSON: quote, profile, filings, facts, statements, scores,
 │   │                      # reactions, estimates, surprises, calendar, insiders, peers, release-*,
-│   │                      # 10k-*, 10q-*; later dcf-*.json, comps.json, diff-*.json added by specialists
+│   │                      # 10k-*, 10q-*; later role-prefixed files such as valuation-dcf-*.json, valuation-comps.json, forensics-diff-*.json added by specialists
 │   └── text/              # plain-text sections: 10k-business, 10k-risk, 10k-mdna, 10q-mdna, release-0, release-1
 ├── memos/                 # earnings.md · forensics.md · valuation.md · industry.md         (Phase 2)
 ├── debate/                # bull.md · bear.md · bull-rebuttal.md · bear-rebuttal.md         (Phase 3)
 └── pm/                    # decision.md · report.json                                        (Phase 4)
 ```
-Rules: **append, don't overwrite** another role's file. A specialist that fetches extra data saves it to `data/` with a descriptive name and lists it in its memo's Sources, so later roles can reuse it.
+Rules: **append, don't overwrite** another role's file. Specialists run in parallel, so name every new data file with your role as a prefix (`data/valuation-comps.json`, `data/industry-comps.json`, `data/earnings-release-3.json`) to avoid two agents writing the same file. Save web pages and transcripts under `data/web/`. List every file you add in your memo's Sources so later roles can reuse it.
 
 ## 2. README.md manifest (orchestrator writes it in Phase 0)
 ```markdown
@@ -93,10 +93,10 @@ What could not be verified, and what would resolve it.
 **Scorecard keys by lens:**
 | Lens | Keys |
 |---|---|
-| earnings | `trajectory` (Accelerating/Stable/Decelerating/Inflecting down), `trajectory_score` 1–5, `guidance_credibility` H/M/L, `beat_quality` H/M/L, `next_print` |
-| forensics | `quality_rating` (Clean/Watch/Red flags), `beneish_m`, `altman`, `piotroski`, `accruals_sloan`, `cash_conversion_5y`, `top_flag` |
-| valuation | `price`, `implied_growth_y1`, `implied_margin`, `expectations` (Easy/Plausible/Demanding/Heroic), `scenarios` (bear / base / bull $ and %), `skew` (Favorable/Balanced/Unfavorable) |
-| industry | `moat` (Wide/Narrow/None), `moat_trend` (Strengthening/Stable/Eroding), `primary_power`, `industry_structure` (Improving/Stable/Deteriorating), `biggest_threat` |
+| earnings | `trajectory` (Accelerating/Stable/Decelerating/Inflecting down), `trajectory_score` 1–5, `guidance_credibility` H/M/L, `beat_quality` H/M/L, `next_print`. Without consensus history (no API key), measure beats against the company's own guidance and say so |
+| forensics | `quality_rating` (Clean/Watch/Red flags), `beneish_m`, `altman`, `piotroski`, `accruals_sloan`, `cash_conversion_5y`, `adjusted_fcf` (FCF incl. finance-lease assets and other capex-like outflows, est.), `top_flag` |
+| valuation | `price`, `implied_revenue_cagr` (and its horizon), `implied_margin`, `expectations` (Easy/Plausible/Demanding/Heroic), `scenarios` (bear / base / bull $ and %), `skew` (Favorable/Balanced/Unfavorable) |
+| industry | `moat` (Wide/Narrow/None), `moat_trend` (Strengthening/Stable/Eroding), `primary_power`, `industry_structure` (Improving/Stable/Deteriorating), `customer_concentration` (largest customer % of revenue, if disclosed), `biggest_threat` |
 
 ## 7. Debate files
 **debate/bull.md and debate/bear.md** (900 words or fewer each), with headings: Thesis (one falsifiable sentence) · Variant perception / What the market is missing · Pillars (3–5; each: claim, evidence with IDs, mechanism or what has to be true, early-warning metric and date) · Scenario (inputs, value per share, % vs. price) · Catalysts (dated) · Steelman of the other side (their best argument, plus your answer or an admission that you have none) · What would make me abandon this case · Sources.

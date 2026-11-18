@@ -106,7 +106,8 @@ def fundamentals(ticker):
         growth, growth_basis = latest["revenue_yoy_pct"] / 100, "latest quarter y/y (prior TTM incomplete)"
     tax = st.div(t["income_tax"], t["pretax_income"])
     tax = 0.21 if tax is None else min(max(tax, 0), 0.35)
-    ic = lambda r: (r.get("equity") or 0) + (r.get("total_debt") or 0) - (r.get("cash") or 0) - (r.get("short_term_investments") or 0)
+    # Invested capital = equity + debt (cash not subtracted, matching statements.py).
+    ic = lambda r: (r.get("equity") or 0) + (r.get("total_debt") or 0)
     ics = [ic(latest)] + ([ic(yago)] if yago else [])
     avg_ic = sum(ics) / len(ics)
     roic = st.div(t["operating_income"] * (1 - tax), avg_ic) if (t["operating_income"] is not None and avg_ic > 0) else None
@@ -117,6 +118,12 @@ def fundamentals(ticker):
         flags.append("negative equity: ROIC/ROE not meaningful")
     if t["revenue"] is None:
         flags.append("TTM revenue missing (bank/insurer or unusual tags?)")
+    if t.get("net_income") is not None and t.get("operating_income") and t["net_income"] > t["operating_income"]:
+        flags.append("net income exceeds operating income: large non-operating gains, so P/E is flattered; prefer EV/EBIT")
+    if latest.get("equity") is not None and latest.get("total_assets") and 0 < latest["equity"] < 0.1 * latest["total_assets"]:
+        flags.append("thin equity (<10% of assets, often from buybacks): ROIC/ROE overstated")
+    if latest.get("total_debt") in (None, 0) and (latest.get("total_liabilities") or 0) > 0.5 * (latest.get("total_assets") or 1):
+        flags.append("debt reads as zero but liabilities are large: debt tags may be missing, so EV is understated")
     sic = None
     try:
         sic = int(edgar.submissions(co["cik"]).get("sic") or 0) or None
@@ -261,8 +268,11 @@ def main():
         "peer_medians_ex_target": medians,
         "target_vs_median": vs,
         "regression_ev_sales_on_growth": ols(pts),
+        "peer_fcf_warning": ("Most peers have negative FCF yield (heavy capex cycle); the median FCF yield is not meaningful."
+                             if sum(1 for r in rows if r["ticker"] != target and (r.get("fcf_yield_pct") or 0) < 0) > len([r for r in rows if r["ticker"] != target]) / 2 else None),
         "errors": errors,
         "notes": ["Multiples on negative or zero denominators are null (not meaningful).",
+                  "Fields per row: revenue (TTM), revenue_growth_pct, ttm_periods, ev, market_cap, ev_sales, ev_ebit, ev_ebitda, pe, pb, fcf_yield_pct, fcf_yield_after_sbc_pct, margins, roic_pct, rule_of_40, flags.",
                   "EV excludes leases, minority interests, pensions and preferred; adjust by hand when material.",
                   "Fiscal years differ across peers; ttm_periods shows exactly which quarters feed each row.",
                   "Prices from --prices are only as good as their citation; keyless quotes are best-effort."],
