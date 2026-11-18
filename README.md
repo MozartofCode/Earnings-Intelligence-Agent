@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <b>20 Claude skills · 8 specialist agents · zero paid data</b><br>
+  <b>21 Claude skills · 8 specialist agents · zero paid data</b><br>
   Turn Claude into a skeptical buy-side research desk that reads the SEC filings and checks the math for you.
 </p>
 
@@ -12,7 +12,7 @@
   <a href="#quick-start">Quick start</a> ·
   <a href="#use-it-in-claudeai-no-coding">Claude.ai</a> ·
   <a href="#what-you-can-do">What you can do</a> ·
-  <a href="#the-20-skills">Skills</a> ·
+  <a href="#the-21-skills">Skills</a> ·
   <a href="#the-desk-deep-dive">Agents</a> ·
   <a href="#example-reports">Example reports</a> ·
   <a href="#troubleshooting">Troubleshooting</a>
@@ -116,7 +116,7 @@ Your reports appear in an `earnings-desk-reports/` folder in whatever directory 
 ## Installation options
 
 ### Claude Code (recommended)
-This gets everything: all 20 skills, the 8-agent desk and slash commands.
+This gets everything: all 21 skills, the 8-agent desk and slash commands.
 
 From your terminal:
 ```bash
@@ -149,9 +149,9 @@ See [Use it in Claude.ai](#use-it-in-claudeai-no-coding) below. Ready-made zips 
 No terminal needed. Each skill comes as a **ready-to-upload zip** in the [`claude-ai/`](claude-ai/) folder.
 
 **1. Download the skills you want**
-- Download zips from the [latest release](https://github.com/MozartofCode/Earnings-Intelligence-Agent/releases/latest) (all 20 attached), or open the [`claude-ai/`](claude-ai/) folder, click a zip, then click the download button (↓).
+- Download zips from the [latest release](https://github.com/MozartofCode/Earnings-Intelligence-Agent/releases/latest) (all 21 attached), or open the [`claude-ai/`](claude-ai/) folder, click a zip, then click the download button (↓).
 - **Starter pack:** `help.zip`, `company-tearsheet.zip`, `earnings-recap.zip`, `forensic-accounting.zip`, `reverse-dcf.zip`, `bull-bear-debate.zip`.
-- To get all 20 at once: **Code → Download ZIP** on the repo page, then look inside `claude-ai/`.
+- To get all 21 at once: **Code → Download ZIP** on the repo page, then look inside `claude-ai/`.
 
 **2. Upload them to Claude**
 - Go to **Customize → Skills** in [claude.ai](https://claude.ai/customize/skills) or the Claude Desktop app.
@@ -199,6 +199,7 @@ Ask in plain English. These all work as written (swap in any ticker):
 | Ask | You get |
 |---|---|
 | *"Any accounting red flags at Super Micro?"* | Beneish, Altman, Piotroski and Sloan with every component explained, filing evidence (auditor, restatements, controls), and a **Clean / Watch / Red flags** verdict |
+| *"A short seller just published this report on Super Micro. Is it right?"* (paste a link or the text) | Every allegation split out and tested against the filings, labeled **Supported / Partly supported / Contradicted / Not verifiable / Opinion** with citations, plus what has happened since (auditor changes, late filings, restatements) |
 | *"What changed in Boeing's risk factors this year?"* | A redline of new, removed and softened language, ranked by importance (investigations, covenants, customer concentration…) |
 | *"Are insiders buying or selling Palantir?"* | Form 4 cluster buying, 10b5-1 vs. discretionary sales, CEO/CFO behavior, ownership structure |
 | *"Are Apple's buybacks actually creating value?"* | Buybacks vs. stock-based compensation, the average buyback price vs. today's, M&A track record, ROIC vs. cost of capital, and an A–F grade |
@@ -290,7 +291,7 @@ claude > Thesis: Intact. Membership renewals 90.4% vs your 89% floor ✔
 
 ---
 
-## The 20 skills
+## The 21 skills
 
 | Group | Skill | What it answers | Try |
 |---|---|---|---|
@@ -307,6 +308,7 @@ claude > Thesis: Intact. Membership renewals 90.4% vs your 89% floor ✔
 | | [`kpi-tracker`](plugins/earnings-desk/skills/kpi-tracker/SKILL.md) | Company-specific metrics over time (subscribers, NRR, same-store sales…) | `/earnings-desk:kpi-tracker NFLX` |
 | | [`read-through`](plugins/earnings-desk/skills/read-through/SKILL.md) | What one company's results mean for peers, suppliers and customers | "What does TSMC's print mean for AMD?" |
 | **Forensics & quality** | [`forensic-accounting`](plugins/earnings-desk/skills/forensic-accounting/SKILL.md) | Accounting red flags: Beneish, Altman, Piotroski, accruals, filing evidence | `/earnings-desk:forensic-accounting NVDA` |
+| | [`short-report-check`](plugins/earnings-desk/skills/short-report-check/SKILL.md) | Which allegations in a short-seller report hold up against the filings? | "Fact-check this short report on SMCI" |
 | | [`capital-allocation`](plugins/earnings-desk/skills/capital-allocation/SKILL.md) | Are buybacks, M&A and dividends creating value? (A–F grade) | `/earnings-desk:capital-allocation AAPL` |
 | | [`insider-ownership`](plugins/earnings-desk/skills/insider-ownership/SKILL.md) | Insider buying and selling, ownership structure | `/earnings-desk:insider-ownership PLTR` |
 | **Valuation & competition** | [`reverse-dcf`](plugins/earnings-desk/skills/reverse-dcf/SKILL.md) | What growth is priced in, and is it realistic? | `/earnings-desk:reverse-dcf MSFT` |
@@ -321,6 +323,7 @@ claude > Thesis: Intact. Membership renewals 90.4% vs your 89% floor ✔
 | New idea | `company-tearsheet` → `deep-dive` → `thesis-tracker` |
 | Earnings day | `earnings-preview` (before) → `earnings-recap` → `transcript-decoder` → `guidance-tracker` |
 | "Is something off here?" | `forensic-accounting` → `filing-diff` → `insider-ownership` → `capital-allocation` |
+| A short report just dropped | `short-report-check` → `forensic-accounting` → `bull-bear-debate` |
 | "Is it too expensive?" | `reverse-dcf` → `comps-valuation` → `moat-analysis` |
 | Earnings season | `read-through` in sector-scan mode across your watchlist |
 
@@ -409,7 +412,7 @@ claude plugin marketplace remove earnings-desk
 plugins/earnings-desk/
 ├── .claude-plugin/plugin.json      plugin name, version, description
 ├── agents/                         the 8 desk agents (one Markdown file each)
-└── skills/                         the 20 skills, one folder each:
+└── skills/                         the 21 skills, one folder each:
     └── <skill>/
         ├── SKILL.md                the instructions Claude follows
         ├── references/             deeper playbooks loaded only when needed

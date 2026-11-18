@@ -31,7 +31,7 @@ Every skill here is a **ready-to-upload zip**. Each one is self-contained: skill
 | `reverse-dcf.zip` | "What growth is priced in?" |
 | `bull-bear-debate.zip` | Strongest bull and bear case, judged |
 
-**Everything else:** `sec-edgar`, `financial-statements`, `filing-diff`, `earnings-preview`, `transcript-decoder`, `guidance-tracker`, `kpi-tracker`, `read-through`, `capital-allocation`, `insider-ownership`, `comps-valuation`, `moat-analysis`, `thesis-tracker`, `deep-dive`.
+**Everything else:** `sec-edgar`, `financial-statements`, `filing-diff`, `earnings-preview`, `transcript-decoder`, `guidance-tracker`, `kpi-tracker`, `read-through`, `capital-allocation`, `insider-ownership`, `comps-valuation`, `moat-analysis`, `thesis-tracker`, `deep-dive`, `short-report-check` (fact-checks a short-seller report against the filings).
 
 ## Good to know on Claude.ai
 - **`deep-dive`** uses 8 parallel agents in Claude Code. On Claude.ai it runs the same phases one after another (data → four analyst passes → bull vs bear → portfolio manager). It takes longer but follows the same process.

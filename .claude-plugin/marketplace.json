@@ -1,6 +1,6 @@
 {
   "name": "earnings-desk",
-  "description": "A free, open-source AI research desk for stocks and earnings: 20 skills and 8 specialist agents that run on SEC EDGAR data with no paid subscriptions.",
+  "description": "A free, open-source AI research desk for stocks and earnings: 21 skills and 8 specialist agents that run on SEC EDGAR data with no paid subscriptions.",
   "owner": {
     "name": "Bertan Berker",
     "url": "https://github.com/MozartofCode"

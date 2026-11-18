@@ -1,7 +1,7 @@
 ---
 name: help
 description: >-
-  Concierge and router for the earnings-desk plugin. Shows what the 20 research skills and 8 analyst agents can do as a categorized menu with example prompts, recommends ready-made workflows (earnings day playbook, new idea, is this a fraud, what's priced in), checks setup (SEC_USER_AGENT and optional free FMP, Finnhub and Alpha Vantage keys, with signup links), and routes a vague question to the single best skill. Use when the user asks "what can you do", "help", "how do I research a stock", "where do I start", "which skill should I use", "how do I set this up", "do I need an API key", "what is earnings-desk", or asks an investing research question without naming a skill.
+  Concierge and router for the earnings-desk plugin. Shows what the 21 research skills and 8 analyst agents can do as a categorized menu with example prompts, recommends ready-made workflows (earnings day playbook, new idea, is this a fraud, what's priced in), checks setup (SEC_USER_AGENT and optional free FMP, Finnhub and Alpha Vantage keys, with signup links), and routes a vague question to the single best skill. Use when the user asks "what can you do", "help", "how do I research a stock", "where do I start", "which skill should I use", "how do I set this up", "do I need an API key", "what is earnings-desk", or asks an investing research question without naming a skill.
 license: MIT
 compatibility: Setup check requires Python 3.8+. Everything else is plain guidance.
 metadata:
@@ -12,7 +12,7 @@ metadata:
 
 # help · your concierge to the research desk
 
-earnings-desk is a free, open-source equity research desk: **20 skills and 8 specialist analysts** running on SEC EDGAR, with no paid data required. This skill helps the user find the right tool fast, get set up, and follow a proven workflow.
+earnings-desk is a free, open-source equity research desk: **21 skills and 8 specialist analysts** running on SEC EDGAR, with no paid data required. This skill helps the user find the right tool fast, get set up, and follow a proven workflow.
 
 ## When to use
 - "What can you do?", "help", "where do I start?", "which skill for X?"
@@ -67,6 +67,7 @@ Invoke any skill as `/earnings-desk:<skill> TICKER`, or just ask in plain Englis
 | Skill | What it answers | Try |
 |---|---|---|
 | `forensic-accounting` | Beneish, Altman, Piotroski, accruals, red flags | "any accounting red flags at SMCI?" |
+| `short-report-check` | Fact-checks a short-seller report claim by claim against the filings | "is this Hindenburg report on SMCI right?" |
 | `capital-allocation` | Buybacks vs. SBC, M&A, ROIC: a management grade | "how well does GOOGL allocate capital?" |
 | `insider-ownership` | Insider buying/selling clusters, 13F, short interest | "are insiders selling PLTR?" |
 
@@ -91,6 +92,7 @@ Invoke any skill as `/earnings-desk:<skill> TICKER`, or just ask in plain Englis
 | **New idea:** "is this worth my time?" | `company-tearsheet` → `deep-dive` (or `deep-dive --quick` first) → `thesis-tracker` |
 | **Earnings day playbook** | before the print: `earnings-preview` · after: `earnings-recap` → `transcript-decoder` → `guidance-tracker` → `thesis-tracker` (check the kill criteria) |
 | **"Is this a fraud?"** | `forensic-accounting` → `filing-diff` → `insider-ownership` → `capital-allocation` |
+| **A short report just dropped** | `short-report-check` → `forensic-accounting` → `bull-bear-debate` |
 | **"What's priced in?"** | `reverse-dcf` → `comps-valuation` → `moat-analysis` (is the premium earned?) |
 | **Sector earnings season** | `earnings-recap` on the bellwether → `read-through` → `kpi-tracker` on the names that matter |
 | **"I already own it"** | `thesis-tracker` (create or review) → `guidance-tracker` → `insider-ownership` each quarter |
@@ -105,7 +107,8 @@ Invoke any skill as `/earnings-desk:<skill> TICKER`, or just ask in plain Englis
 | "how did earnings go?", "did they beat?" | `earnings-recap` | `transcript-decoder` |
 | "earnings next week", "what to expect" | `earnings-preview` | `read-through` |
 | "can I trust management?" | `guidance-tracker` | `capital-allocation` |
-| "is this a scam / too good to be true?", "short report" | `forensic-accounting` | `filing-diff` |
+| "is this a scam / too good to be true?" | `forensic-accounting` | `filing-diff` |
+| "short report", "is this short thesis right?", "fact-check these allegations" | `short-report-check` | `forensic-accounting` |
 | "who are the competitors?", "is it defensible?" | `moat-analysis` | `comps-valuation` |
 | "why did the stock drop?" | `earnings-recap` if near a print, else `filing-diff` and `insider-ownership` | `bull-bear-debate` |
 | "compare X and Y" | `comps-valuation` | `company-tearsheet` on each |
