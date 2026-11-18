@@ -8,11 +8,13 @@
 </p>
 
 <p align="center">
+  <a href="#watch-the-1-minute-demo">Demo</a> ·
   <a href="#quick-start">Quick start</a> ·
-  <a href="#how-to-use-it">How to use it</a> ·
+  <a href="#use-it-in-claudeai-no-coding">Claude.ai</a> ·
+  <a href="#what-you-can-do">What you can do</a> ·
   <a href="#the-20-skills">Skills</a> ·
   <a href="#the-desk-deep-dive">Agents</a> ·
-  <a href="#examples">Examples</a> ·
+  <a href="#example-reports">Example reports</a> ·
   <a href="#troubleshooting">Troubleshooting</a>
 </p>
 
@@ -41,6 +43,33 @@ There's no app to run, no server and no `pip install`. It's just skills: Markdow
 
   ✔ earnings-desk-reports/NVDA-deep-dive-2026-11-16.html
 ```
+
+---
+
+## Watch the 1-minute demo
+
+<p align="center">
+  <a href="docs/demo.mp4"><img src="docs/demo.gif" alt="earnings-desk 1-minute demo: installing on Claude.ai, asking about Apple's earnings, the 8-agent deep dive and the finished reports" width="100%"></a>
+</p>
+<p align="center"><a href="docs/demo.mp4"><b>▶ Watch in full HD (MP4)</b></a></p>
+
+---
+
+## Why not just ask Claude?
+
+Claude is a brilliant generalist. Ask it about a stock without a process, though, and you get a fluent summary of what's commonly said. earnings-desk gives Claude the **data, the methods and the skepticism** of a professional research desk:
+
+| | Claude on its own | Claude + earnings-desk |
+|---|---|---|
+| **Where numbers come from** | Training data or a quick web search | Official SEC filings (10-K, 10-Q, 8-K, XBRL), downloaded fresh, with each number cited to its filing |
+| **"Did they beat?"** | "Yes, revenue and EPS beat estimates" | Beat by line, guidance vs. consensus, and **how much of the beat was real** (tax rate, one-offs, buybacks, working capital) |
+| **Accounting quality** | Rarely checked | Beneish, Altman, Piotroski and Sloan scores, plus filing evidence: auditor notes, restatements, odd goodwill |
+| **Valuation** | A generic P/E comparison | A reverse DCF that shows **what growth the price already assumes**, with scenarios and peer regressions |
+| **Point of view** | One balanced paragraph | Bull and bear agents argue, rebut each other, and a portfolio-manager agent names the deciding variables and kill criteria |
+| **Output** | A chat reply | A shareable HTML report with charts, tables and a sources list, plus Markdown |
+| **Repeatability** | Different every time | The same rigorous checklist every time, for every ticker |
+
+In the [AAPL example](examples/AAPL-earnings-recap-2026-11-17.md), the headline was "beat on revenue and EPS". earnings-desk found that the **whole $0.11 EPS beat was roughly a tariff refund plus a lower tax rate**, and that inventory was 2.5× last year's level. That's the difference.
 
 ---
 
@@ -96,12 +125,84 @@ npx skills add MozartofCode/Earnings-Intelligence-Agent
 It shows a picker. Choose all skills, or just the ones you want. **Always include `sec-edgar`**, because the other skills use its data tools. The multi-agent `deep-dive` works best in Claude Code; other agents run its phases one after another.
 
 ### Claude.ai / Claude Desktop
-1. Download this repo as a zip (**Code → Download ZIP** on GitHub) and unzip it.
-2. Open `plugins/earnings-desk/skills/`. Each folder there is one skill.
-3. Zip the skill folder you want (e.g. `earnings-recap/`) and upload it under **Settings → Capabilities → Skills**. Upload `sec-edgar` too.
-4. **To make a data-driven skill self-contained:** before zipping, copy `sec-edgar/scripts` and `sec-edgar/assets` into `<skill>/vendor/sec-edgar/`. For `reverse-dcf`, `forensic-accounting` and `comps-valuation`, also copy `financial-statements/scripts` into `<skill>/vendor/financial-statements/`. The scripts find these automatically.
+See [Use it in Claude.ai](#use-it-in-claudeai-no-coding) below. Ready-made zips are in [`claude-ai/`](claude-ai/).
 
-Claude.ai needs code execution with internet access turned on for the scripts to reach sec.gov. Without it, the skills fall back to web search and say so.
+---
+
+## Use it in Claude.ai (no coding)
+
+No terminal needed. Each skill comes as a **ready-to-upload zip** in the [`claude-ai/`](claude-ai/) folder.
+
+**1. Download the skills you want**
+- Open the [`claude-ai/`](claude-ai/) folder on GitHub, click a zip, then click the download button (↓).
+- **Starter pack:** `help.zip`, `company-tearsheet.zip`, `earnings-recap.zip`, `forensic-accounting.zip`, `reverse-dcf.zip`, `bull-bear-debate.zip`.
+- To get all 20 at once: **Code → Download ZIP** on the repo page, then look inside `claude-ai/`.
+
+**2. Upload them to Claude**
+- Go to **Customize → Skills** in [claude.ai](https://claude.ai/customize/skills) or the Claude Desktop app.
+- Click **Upload skill**, pick a zip, and repeat for each skill.
+- Make sure each skill's toggle is **on**.
+
+**3. Check two settings**
+- **Code execution must be on** (Settings → Capabilities). The skills run small Python scripts.
+- For live SEC data, the code sandbox must be allowed to reach `sec.gov` (the network setting for code execution). If it can't, the skills fall back to cited web search and say so.
+- Skills need a paid plan that supports them (Pro, Max, Team or Enterprise).
+
+**4. Ask your question**
+
+Start a new chat. The first time, tell Claude your SEC contact (the SEC requires a name and email; it's free):
+```text
+My SEC user agent is "Jane Doe jane@example.com".
+Did Apple beat last quarter? Was it a quality beat?
+```
+Claude picks the right skill automatically. You'll see it load the skill, run its scripts, and reply with the verdict plus a downloadable **HTML report**.
+
+**Good to know on Claude.ai**
+- `deep-dive` runs its phases one after another rather than with 8 parallel agents, so it's slower, but the process is the same.
+- Downloaded reports open in any browser. Ask for *"the HTML report"* if Claude only answers in chat.
+- Chats don't keep files between conversations. To keep a `thesis-tracker` thesis, download it and re-upload it next time.
+
+More detail is in [`claude-ai/README.md`](claude-ai/README.md).
+
+---
+
+## What you can do
+
+Ask in plain English. These all work as written (swap in any ticker):
+
+### Before and after earnings
+| Ask | You get |
+|---|---|
+| *"What's the setup into Nvidia's earnings next week?"* | Consensus vs. the real bar, the 3–5 KPIs that will move the stock, the options-implied move vs. history, bull/base/bear scenarios, and the 5 sharpest questions for the call |
+| *"Did Amazon beat? Was it a quality beat?"* | A beat/miss scorecard, guidance vs. consensus, a breakdown of where the EPS beat came from, a margin bridge, and a **Print quality** verdict |
+| *"Was management dodging questions on the Tesla call?"* | Tone shift vs. last quarter, hedging-word counts, a 0–100 evasiveness score per answer, and analyst pushback themes |
+| *"Does Meta's management sandbag its guidance?"* | Every guided metric vs. actual over 3 years: hit rate, average beat, and a sandbagger / straight shooter / over-promiser label |
+| *"Chart Netflix's subscribers and ARPU for the last 3 years"* | A clean KPI time series with acceleration and deceleration flagged, plus definition changes |
+| *"What does TSMC's quarter mean for AMD, Apple and Nvidia?"* | Read-through signals (demand, pricing, inventory, capex) graded direct or indirect, and whether those stocks already moved |
+
+### Is something off?
+| Ask | You get |
+|---|---|
+| *"Any accounting red flags at Super Micro?"* | Beneish, Altman, Piotroski and Sloan with every component explained, filing evidence (auditor, restatements, controls), and a **Clean / Watch / Red flags** verdict |
+| *"What changed in Boeing's risk factors this year?"* | A redline of new, removed and softened language, ranked by importance (investigations, covenants, customer concentration…) |
+| *"Are insiders buying or selling Palantir?"* | Form 4 cluster buying, 10b5-1 vs. discretionary sales, CEO/CFO behavior, ownership structure |
+| *"Are Apple's buybacks actually creating value?"* | Buybacks vs. stock-based compensation, the average buyback price vs. today's, M&A track record, ROIC vs. cost of capital, and an A–F grade |
+
+### Is it worth the price?
+| Ask | You get |
+|---|---|
+| *"What growth is priced into Microsoft?"* | Reverse DCF: the growth and margins today's price implies, compared with history and base rates, plus scenarios and a sensitivity table |
+| *"Is Salesforce cheap vs. its peers, adjusted for growth?"* | A peer multiples table, an EV/Sales-vs-growth regression, and whether the premium or discount is justified |
+| *"Does Visa have a real moat? Is it widening?"* | A 7 Powers + Porter scorecard with filing evidence and a moat trend |
+
+### Build and track a view
+| Ask | You get |
+|---|---|
+| *"Give me a one-pager on Costco"* | A tearsheet: business model, 5-year financials, valuation, balance sheet, catalysts, and 3 bull and 3 bear points |
+| *"Do a full deep dive on Nvidia"* | The 8-agent desk: shared data, 4 parallel specialist memos, bull vs. bear with rebuttals, and a PM verdict with kill criteria |
+| *"Steelman both sides of the Tesla debate"* | Independent bull and bear cases, a rebuttal round, the 2–3 variables that decide it, and a pre-mortem |
+| *"Save my thesis on Costco and check it after each earnings report"* | A living thesis file with measurable pillars and kill criteria, re-scored as **Intact / Under pressure / Broken** |
+| *"How did the semiconductor group report this earnings season?"* | A sector scan: a beat/miss/guide table across the group, common themes and outliers |
 
 ---
 
@@ -230,7 +331,7 @@ Every intermediate memo is saved in `.earnings-desk/runs/` so you can audit how 
 
 ---
 
-## Examples
+## Example reports
 
 Real reports, produced by following the skills on live SEC data. Read the Markdown here, or download the HTML and open it in a browser.
 
@@ -285,8 +386,9 @@ plugins/earnings-desk/
         ├── references/             deeper playbooks loaded only when needed
         ├── assets/                 templates (e.g. the HTML report template)
         └── scripts/                small stdlib-Python helpers (SEC data, scores, DCF)
+claude-ai/                          ready-to-upload skill zips for Claude.ai / Desktop
 examples/                           sample reports
-docs/                               banner and icon images
+docs/                               demo video, banner and icon
 ```
 
 The data helpers all live in the `sec-edgar` skill (`edgar.py`, `market.py`, `render_report.py`). The other skills call them as a sibling folder (`../sec-edgar/scripts/`).
