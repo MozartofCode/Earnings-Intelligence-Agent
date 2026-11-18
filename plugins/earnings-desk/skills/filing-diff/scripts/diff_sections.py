@@ -40,10 +40,27 @@ LEXICON = {
 PRIORITY = re.compile(r"(material weakness|going concern|restat|investigation|subpoena|covenant|impairment|customer concentration|single source|export control|tariff|class action|default|downgrade|cybersecurity incident|layoff|restructur)", re.I)
 
 
+PAGE_ARTIFACT = re.compile(r"^(?:\d{1,3}|table of contents|part [ivx]+|page \d+|item \d+[a-c]?(?:,\s*\d+[a-c]?)*)$", re.I)
+
+
 def paragraphs(text):
-    paras = [re.sub(r"\s+", " ", p).strip() for p in re.split(r"\n\s*\n", text)]
-    # drop page numbers, running headers and table-of-contents fragments
-    return [p for p in paras if len(p) > 60 and not re.fullmatch(r"[\d\s|.\-]+", p)]
+    """Split into paragraphs, dropping page artifacts and rejoining paragraphs
+    that a page break split mid-sentence (EDGAR HTML puts the page number and a
+    'Table of Contents' header in the middle of running text)."""
+    raw = [re.sub(r"\s+", " ", p).strip() for p in re.split(r"\n\s*\n", text)]
+    raw = [p for p in raw if p and not PAGE_ARTIFACT.match(p.strip(" |."))]
+    merged = []
+    for p in raw:
+        if merged:
+            prev = merged[-1]
+            ends_open = not re.search(r"[.!?:;\"\u201d)]$", prev)
+            continues = re.match(r"^[a-z(,;]", p) is not None
+            if ends_open and continues and len(prev) > 40:
+                merged[-1] = prev + " " + p
+                continue
+        merged.append(p)
+    # drop very short fragments and pure-number lines
+    return [p for p in merged if len(p) > 60 and not re.fullmatch(r"[\d\s|.\-]+", p)]
 
 
 def norm(p):

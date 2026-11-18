@@ -108,6 +108,8 @@ Write `.earnings-desk/work/TICKER-filing-diff.json` per `../sec-edgar/references
   4. *Legal, controls and accounting policies*: Items 3 and 9A and critical accounting estimates findings ("no change" is a valid result).
   5. *Language shifts*: lexicon table (category, old, new, delta) and a bar chart of deltas.
   6. *What to watch*: how each change could show up in the next print or filing.
+  Include only the sections for diffs you actually ran. For a risk-factors-only question, use 1, 2, 5 and 6 and don't add placeholder "not in scope" sections.
+  Paragraphs that moved or were re-wrapped can still appear as both added and removed; before calling something new, check that its text isn't in the removed list or the old filing.
 - **sources**: both filings' accession numbers and URLs for every section compared.
 
 ```bash
