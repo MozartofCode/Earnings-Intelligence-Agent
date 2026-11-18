@@ -149,7 +149,7 @@ See [Use it in Claude.ai](#use-it-in-claudeai-no-coding) below. Ready-made zips 
 No terminal needed. Each skill comes as a **ready-to-upload zip** in the [`claude-ai/`](claude-ai/) folder.
 
 **1. Download the skills you want**
-- Open the [`claude-ai/`](claude-ai/) folder on GitHub, click a zip, then click the download button (↓).
+- Download zips from the [latest release](https://github.com/MozartofCode/Earnings-Intelligence-Agent/releases/latest) (all 20 attached), or open the [`claude-ai/`](claude-ai/) folder, click a zip, then click the download button (↓).
 - **Starter pack:** `help.zip`, `company-tearsheet.zip`, `earnings-recap.zip`, `forensic-accounting.zip`, `reverse-dcf.zip`, `bull-bear-debate.zip`.
 - To get all 20 at once: **Code → Download ZIP** on the repo page, then look inside `claude-ai/`.
 
