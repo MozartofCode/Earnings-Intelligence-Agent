@@ -36,7 +36,7 @@ Scripts live in `scripts/`. Shared data tools live at `../sec-edgar/scripts/`.
 2. **History, the reality check.** `python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 10 --quarters 8`. Pull revenue CAGR over 3, 5 and 10 years (as far as data goes), the FCF margin range (min, max, median), SBC % of revenue, ROIC trend and share-count drift. Ask whether this is a steady compounder, a cyclical, or a company that has just inflected.
 3. **Reverse DCF.** Hold margins at today's level first:
    `python3 ${CLAUDE_SKILL_DIR}/scripts/dcf.py TICKER --price P --wacc W`
-   Read `reverse.implied_10y_revenue_cagr_pct`: the compound annual revenue growth over the horizon that justifies the price (also `implied_revenue_multiple_vs_today`, e.g. 3.2× revenue in 10 years). That CAGR is the number to compare with history and base rates. `implied_year1_growth_pct` is only the starting point of a linear fade to terminal growth, so don't quote it as "the growth priced in".
+   Read `reverse.implied_revenue_cagr_pct`: the compound annual revenue growth over `cagr_horizon_years` (default 10) that justifies the price (also `implied_revenue_multiple_vs_today`, e.g. 3.2× revenue in 10 years). Margins are after stock-based compensation (`margin_basis`). If today's FCF margin is depressed by a capex cycle or one-off, the default solve understates what normal margins would imply: run it again with a normalized `--target-margin` and report both. That CAGR is the number to compare with history and base rates. `implied_year1_growth_pct` is only the starting point of a linear fade to terminal growth, so don't quote it as "the growth priced in".
    Then read `reverse.implied_target_fcf_margin_pct`, the year-5 FCF margin needed if growth runs at `--growth` (or 10% when `--growth` is omitted). Also note `implied_fcf_yield_pct` (TTM FCF / market cap).
 4. **Gather the expectation benchmarks.** Get guidance from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER` (outlook section) and consensus from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py estimates TICKER` (needs a key; otherwise web search, cited). Put implied vs. history vs. guidance vs. consensus vs. base rate in one table.
 5. **Your own scenarios.** Run dcf.py once per scenario with **explicit drivers**, so each case says exactly what you believe:
@@ -50,7 +50,7 @@ Scripts live in `scripts/`. Shared data tools live at `../sec-edgar/scripts/`.
    ```bash
    for g in 5 10 15 20 25; do for m in 20 25 30 35; do
      python3 ${CLAUDE_SKILL_DIR}/scripts/dcf.py TICKER --price P --growth "$g" --target-margin "$m" \
-       | python3 -c "import json,sys; d=json.load(sys.stdin); b=d['scenarios']['base']; print(sys.argv[1], sys.argv[2], b['value_per_share'], b['revenue_cagr_10y_pct'])" "$g" "$m"
+       | python3 -c "import json,sys; d=json.load(sys.stdin); b=d['scenarios']['base']; print(sys.argv[1], sys.argv[2], b['value_per_share'], b['revenue_cagr_pct'])" "$g" "$m"
    done; done
    ```
    Pass each flag and value as separate literal words, as above. Don't store several flags in one shell variable: zsh (the macOS default) won't split it and dcf.py will see one malformed argument.
@@ -113,6 +113,7 @@ python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk
 ## Quality bar & pitfalls
 - **Never present the default base case as a valuation.** Without `--growth`, base equals price by construction.
 - Report the implied **CAGR**, not just year-1 growth. Year-1 growth on a linear fade overstates the growth level people picture.
+- **Finance leases:** capex excludes assets acquired under finance leases. For data-center-heavy companies (hyperscalers, telecoms) that understates true capital intensity; check the lease note in the 10-K and adjust the margin, or say so explicitly.
 - TTM FCF can be distorted (working-capital swings, capex cycles, one-off tax payments). Compare it with 3-year average FCF margin from statements.py and use `--target-margin` to normalize.
 - Net debt in dcf.py excludes leases, pensions and minority interests. Adjust by hand when they're material (see the references file).
 - Negative FCF today: the reverse solve may fail (returns `null`). Use `--manual` with a normalized margin, or switch to EV/Sales vs. growth (`comps-valuation`).

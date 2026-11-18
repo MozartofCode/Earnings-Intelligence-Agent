@@ -168,7 +168,7 @@ def main():
     out = dict(co, fiscal_year=t["period_end"], prior_year=pr["period_end"], sic=sic, is_financial=financial,
                beneish=na if financial else beneish(t, pr), altman=na if financial else altman(t, a.market_cap, manufacturer),
                piotroski=na if financial else piotroski(t, pr), sloan=na if financial else sloan(t, pr),
-               working_capital_trend=trend, quick_flags=flags,
+               working_capital_trend=[] if financial else trend, quick_flags=flags,
                caveats=(["Financial company (SIC %s): Beneish, Altman and Piotroski are not designed for banks/insurers. Use credit-quality, reserve and capital metrics instead." % sic] if financial else []) +
                        ["Scores flag where to dig, not conclusions. Confirm in the 10-K notes (revenue recognition, reserves, capitalization policies)."],
                sources=sorted(set(x for x in (t.get("accn"), pr.get("accn")) if x)))

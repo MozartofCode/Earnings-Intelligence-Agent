@@ -84,10 +84,12 @@ Quantitative screens tell you **where** to dig. The filings tell you **whether**
 ## Banks and insurers
 Industrial accounting screens don't apply to financial companies (`is_financial: true`); their balance sheets are funding and loans, not inventory and receivables. Run this instead:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 400000 > .earnings-desk/work/TICKER-er0.json
-grep -n -i -E "CET1|common equity tier 1|tier 1 leverage|SLR|supplementary leverage|LCR|liquidity coverage|net charge-off|allowance for (loan|credit) loss|nonperforming|provision for credit|net interest margin|combined ratio|reserve (development|releases)" .earnings-desk/work/TICKER-er0.json | head -60
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-Q --section mdna --max-chars 400000 > .earnings-desk/work/TICKER-10q.json
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 400000 \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['text'])" > .earnings-desk/work/TICKER-er0.txt
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-Q --max-chars 1000 > .earnings-desk/work/TICKER-10q.json   # saves the full 10-Q; path in saved_to
+grep -n -i -E "CET1|common equity tier 1|tier 1 leverage|supplementary leverage|liquidity coverage|net charge-off|allowance for (loan|credit) loss|nonperforming|provision for credit|net interest margin|combined ratio|reserve (development|release)" .earnings-desk/work/TICKER-er0.txt | cut -c1-300 | head -60
 ```
+Run the same grep on the full 10-Q text at `saved_to` (bank 10-Qs don't use the standard Item headings, so don't rely on `--section`). Skip the market-cap and `scores.py` steps for banks: those screens return `available: false`.
 **Banks:** CET1 and Tier 1 leverage vs. requirement (buffer in points), LCR, net charge-offs and NCO ratio trend, allowance as % of loans and reserve builds/releases, nonperforming assets, NIM trend, deposit mix and uninsured share, and unrealized losses on securities (AOCI/HTM).
 **Insurers:** combined ratio and prior-year reserve development, investment portfolio quality, statutory capital (RBC).
 Report layout: Capital → Liquidity → Credit quality → Earnings quality (reserve releases, one-offs) → Filing evidence → verdict. A distress question about a bank is answered by capital, liquidity and credit, never by Altman Z.
