@@ -358,6 +358,19 @@ Real reports, produced by following the skills on live SEC data. Read the Markdo
 
 ---
 
+## Privacy and network access
+
+earnings-desk has no server and collects nothing. Everything runs on your machine (or in Claude's sandbox) and is saved in the folder you work in.
+
+| Host | When | What is sent |
+|---|---|---|
+| `www.sec.gov`, `data.sec.gov` | Always (filings and financial data) | The ticker/CIK being researched and your `SEC_USER_AGENT` (name and email), which the SEC requires |
+| `query1.finance.yahoo.com` | Prices, when no API key is set | The ticker symbol |
+| `financialmodelingprep.com`, `finnhub.io`, `www.alphavantage.co` | Only if you set that provider's key | The ticker and your own API key |
+| Web search / pages | When a skill needs consensus, transcripts or news | Search queries about the company |
+
+Local files: `.earnings-desk/cache/` (SEC responses), `.earnings-desk/work/` (intermediate files), `earnings-desk-reports/` (reports). Delete them any time.
+
 ## Updating and removing
 
 ```bash
