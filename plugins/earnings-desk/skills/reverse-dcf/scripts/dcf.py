@@ -22,8 +22,10 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "..", "sec-edgar", "scripts"))
-sys.path.insert(0, os.path.join(HERE, "..", "..", "financial-statements", "scripts"))
+for _base in (os.path.join(HERE, "..", ".."), os.path.join(HERE, "..", "vendor")):  # sibling skill, or bundled copy
+    sys.path.insert(0, os.path.join(_base, "sec-edgar", "scripts"))
+for _base in (os.path.join(HERE, "..", ".."), os.path.join(HERE, "..", "vendor")):  # sibling skill, or bundled copy
+    sys.path.insert(0, os.path.join(_base, "financial-statements", "scripts"))
 
 
 def project(rev0, m0, g1, gT, m_target, years, wacc, ramp=5):

@@ -17,7 +17,8 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "..", "sec-edgar", "scripts"))
+for _base in (os.path.join(HERE, "..", ".."), os.path.join(HERE, "..", "vendor")):  # sibling skill, or bundled copy
+    sys.path.insert(0, os.path.join(_base, "sec-edgar", "scripts"))
 import edgar  # noqa: E402
 
 
