@@ -24,17 +24,19 @@ The most expensive mistake in investing is a thesis that quietly changes so you 
 - Create mode: the user's thesis in their own words (ask for it if it's missing; never invent a position), horizon (default 2–3 years), direction (long / short / watch).
 - Update mode: optional trigger event ("Q3 print", "CEO left").
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 
 ### Create mode
 1. **Get the user's thesis.** Ask what they believe and why, in plain words. If a recent `bull-bear-debate`, `moat-analysis` or `reverse-dcf` report exists in `earnings-desk-reports/`, use its key variables and implied expectations as raw material, and confirm them with the user.
 2. **Establish baselines** (commands relative to this skill folder):
    ```bash
-   python3 ../financial-statements/scripts/statements.py TICKER --years 5 --quarters 8
-   python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER
-   python3 ../reverse-dcf/scripts/dcf.py TICKER --price P          # what's priced in at the reference price
-   python3 ../sec-edgar/scripts/market.py quote TICKER
-   python3 ../sec-edgar/scripts/market.py calendar TICKER          # next earnings date (key or web fallback)
+   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 5 --quarters 8
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER
+   python3 ${CLAUDE_SKILL_DIR}/../reverse-dcf/scripts/dcf.py TICKER --price P          # what's priced in at the reference price
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py quote TICKER
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py calendar TICKER          # next earnings date (key or web fallback)
    ```
 3. **Draft the file** from [assets/thesis-template.md](assets/thesis-template.md): the 3-sentence thesis, 3–5 pillars (each with a KPI, source, baseline and *intact / weakening / broken* thresholds), 3–5 kill criteria, a catalyst calendar, and a blank position-notes section for the user. Show the draft and get the user's sign-off on thresholds and kill criteria **before** writing them. They have to be the user's commitments.
 4. **Write** `.earnings-desk/theses/TICKER.md` (create the directory if needed; use an uppercase ticker). Add the first log entry with the reference price and its source.
@@ -43,14 +45,14 @@ The most expensive mistake in investing is a thesis that quietly changes so you 
 1. **Read** `.earnings-desk/theses/TICKER.md`. Note `last_reviewed`, each pillar's KPI and thresholds, the kill criteria and catalyst dates.
 2. **Pull what's new since `last_reviewed`:**
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms 10-K,10-Q,8-K --limit 10   # anything filed since last review?
-   python3 ../sec-edgar/scripts/edgar.py facts TICKER --periods 8 --annual 3               # latest reported KPIs
-   python3 ../financial-statements/scripts/statements.py TICKER --years 3 --quarters 8     # margins, growth, share count
-   python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER                           # results + guidance
-   python3 ../filing-diff/scripts/diff_sections.py TICKER --form 10-Q --section mdna        # what changed in MD&A
-   python3 ../filing-diff/scripts/diff_sections.py TICKER --form 10-K --section 1A          # new risks (annual)
-   python3 ../sec-edgar/scripts/edgar.py insiders TICKER --days 120
-   python3 ../sec-edgar/scripts/market.py quote TICKER
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 10-K,10-Q,8-K --limit 10   # anything filed since last review?
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py facts TICKER --periods 8 --annual 3               # latest reported KPIs
+   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 3 --quarters 8     # margins, growth, share count
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER                           # results + guidance
+   python3 ${CLAUDE_SKILL_DIR}/../filing-diff/scripts/diff_sections.py TICKER --form 10-Q --section mdna        # what changed in MD&A
+   python3 ${CLAUDE_SKILL_DIR}/../filing-diff/scripts/diff_sections.py TICKER --form 10-K --section 1A          # new risks (annual)
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py insiders TICKER --days 120
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py quote TICKER
    ```
    For KPIs that aren't in XBRL (segment revenue, NRR, units), read them from the earnings release or the 10-Q segment note. Check `../forensic-accounting/scripts/scores.py TICKER` once a year, or if a kill criterion mentions accounting.
 3. **Score each pillar** against its pre-set thresholds: **Intact / Weakening / Broken**, with the KPI value, period and source. If a KPI can't be found, mark it "Not updated (not disclosed)". Never guess.
@@ -95,7 +97,7 @@ The most expensive mistake in investing is a thesis that quietly changes so you 
    - **Sections:** *Thesis* (3 sentences in a blockquote); *Pillar scorecard* (table: pillar, KPI, baseline, latest, thresholds, status pill; plus `scores` bars showing distance to the "broken" threshold); *Kill criteria* (table: criterion, status, evidence; any hit is a `neg` callout at the top); *What changed* (sourced callouts); *Catalyst calendar* (table); *Conviction & next check*.
    - **Sources:** accessions and URLs for every KPI value, and the price source.
    ```bash
-   python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-thesis-tracker.json --out-dir earnings-desk-reports
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-thesis-tracker.json --out-dir earnings-desk-reports
    ```
 3. **In chat:** "Thesis: Under pressure. P2 (gross margin) is weakening at 66.8% vs. a 70% intact line; no kill criteria hit; conviction 4 → 3 proposed. Next check: Q4 print on DATE." Then give the thesis-file path and the report paths. Suggest committing `.earnings-desk/theses/` to git for an audit trail, but don't commit for the user.
 

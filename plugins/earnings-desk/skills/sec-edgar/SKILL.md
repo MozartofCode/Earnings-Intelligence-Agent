@@ -23,29 +23,31 @@ SEC requires automated tools to identify themselves. If a command returns a 403 
 ```bash
 export SEC_USER_AGENT="Jane Doe jane@example.com"
 ```
-Optional free-tier keys add consensus estimates, EPS surprise history, earnings calendars and reliable quotes: `FINNHUB_API_KEY`, `FMP_API_KEY`, `ALPHAVANTAGE_API_KEY`. Run `python3 scripts/market.py status` to see what is configured. **Everything degrades gracefully.** When a key is missing, the JSON says `"available": false` with a hint, and you fall back to web search and label the figure as such.
+Optional free-tier keys add consensus estimates, EPS surprise history, earnings calendars and reliable quotes: `FINNHUB_API_KEY`, `FMP_API_KEY`, `ALPHAVANTAGE_API_KEY`. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py status` to see what is configured. **Everything degrades gracefully.** When a key is missing, the JSON says `"available": false` with a hint, and you fall back to web search and label the figure as such.
+
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
 
 ## Commands
 Scripts live in `scripts/` next to this file. Other skills reach them at `../sec-edgar/scripts/`. All output is JSON. Responses are cached in `./.earnings-desk/cache/`.
 
 | Need | Command |
 |---|---|
-| Ticker → CIK, name, exchange | `python3 scripts/edgar.py cik NVDA` |
-| Profile + latest filings | `python3 scripts/edgar.py profile NVDA` |
-| Filing list | `python3 scripts/edgar.py filings NVDA --forms 10-K,10-Q,8-K --limit 12` |
-| Normalized financials (35 metrics, annual + quarterly) | `python3 scripts/edgar.py facts NVDA --periods 12 --annual 6` |
-| One raw XBRL tag | `python3 scripts/edgar.py concept NVDA RevenueFromContractWithCustomerExcludingAssessedTax` |
-| Filing text, one section | `python3 scripts/edgar.py filing-text NVDA --form 10-K --section 1A` (sections: `1`, `1A`, `1C`, `3`, `7`/`mdna`, `7A`, `8`, `9A`, or heading text; `--index 1` = prior filing) |
-| Latest earnings press release | `python3 scripts/edgar.py earnings-release NVDA` (`--index 1` = previous quarter) |
-| Insider transactions | `python3 scripts/edgar.py insiders NVDA --days 180` |
-| SIC peer universe | `python3 scripts/edgar.py peers NVDA` (a starting list only; refine by business model) |
-| Quote / market cap | `python3 scripts/market.py quote NVDA` |
-| Price history | `python3 scripts/market.py history NVDA --range 2y` |
-| Post-earnings moves (last N prints) | `python3 scripts/market.py reactions NVDA --n 8` |
-| Consensus estimates (key needed) | `python3 scripts/market.py estimates NVDA` |
-| EPS surprise history (key needed) | `python3 scripts/market.py surprises NVDA` |
-| Next earnings date | `python3 scripts/market.py calendar NVDA` |
-| Render a report | `python3 scripts/render_report.py report.json --out-dir earnings-desk-reports` |
+| Ticker → CIK, name, exchange | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py cik NVDA` |
+| Profile + latest filings | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py profile NVDA` |
+| Filing list | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py filings NVDA --forms 10-K,10-Q,8-K --limit 12` |
+| Normalized financials (35 metrics, annual + quarterly) | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py facts NVDA --periods 12 --annual 6` |
+| One raw XBRL tag | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py concept NVDA RevenueFromContractWithCustomerExcludingAssessedTax` |
+| Filing text, one section | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py filing-text NVDA --form 10-K --section 1A` (sections: `1`, `1A`, `1C`, `3`, `7`/`mdna`, `7A`, `8`, `9A`, or heading text; `--index 1` = prior filing) |
+| Latest earnings press release | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py earnings-release NVDA` (`--index 1` = previous quarter) |
+| Insider transactions | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py insiders NVDA --days 180` |
+| SIC peer universe | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py peers NVDA` (a starting list only; refine by business model) |
+| Quote / market cap | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py quote NVDA` |
+| Price history | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py history NVDA --range 2y` |
+| Post-earnings moves (last N prints) | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py reactions NVDA --n 8` |
+| Consensus estimates (key needed) | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py estimates NVDA` |
+| EPS surprise history (key needed) | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py surprises NVDA` |
+| Next earnings date | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py calendar NVDA` |
+| Render a report | `python3 ${CLAUDE_SKILL_DIR}/scripts/render_report.py report.json --out-dir earnings-desk-reports` |
 
 Long filing text is saved to disk (`saved_to` in the JSON). Use `grep`/`Read` on that file rather than pulling hundreds of thousands of characters into context.
 
@@ -60,7 +62,7 @@ Long filing text is saved to disk (`saved_to` in the JSON). Use `grep`/`Read` on
 ## Rendering reports
 Every earnings-desk skill ends by writing a report JSON that follows [references/report-schema.md](references/report-schema.md), then runs:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/<ticker>-<skill>.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<ticker>-<skill>.json --out-dir earnings-desk-reports
 ```
 It writes `earnings-desk-reports/<TICKER>-<skill>-<date>.html` (the shared editorial "research terminal" look: light/dark, print-ready, charts, sources) plus a `.md` twin, and prints any schema warnings. Fix the warnings, then give the user both paths.
 

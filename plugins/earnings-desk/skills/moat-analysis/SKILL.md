@@ -23,16 +23,18 @@ A moat is not a good product or a famous name. It's a structural reason that **r
 ## Inputs
 - `TICKER` (required). Optional: up to 3 key competitors to benchmark (default: the 10-K's named competitors plus `edgar.py peers`), and the years of history (default 10, as available).
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 Commands are relative to this skill folder. Save long filing text to disk and grep it (the `saved_to` field).
 
 1. **The outcome test first: returns and margins over time.**
-   `python3 ../financial-statements/scripts/statements.py TICKER --years 10 --quarters 12`
+   `python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 10 --quarters 12`
    Extract annual ROIC, gross margin, operating margin, R&D % and SBC % of revenue, plus revenue growth. Look at the **worst year** (recession, down-cycle, competitive shock): did gross margin hold within ~3 pts? Did ROIC stay above ~10%?
-2. **Benchmark against competitors.** `python3 ../comps-valuation/scripts/comps.py TICKER COMP1 COMP2 COMP3 --no-quote` returns TTM margins, ROIC and growth side by side (no prices needed). Superior economics vs. direct rivals is the signature of power. Parity suggests no moat, whatever the narrative says.
-3. **What the company says about competition.** `python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 1` (Business: grep "compet", "customer", "patent", "network", "switching", "brand", "scale"). `--section 1A` (Risk Factors: grep "competition", "pricing pressure", "concentration", "regulat", "substitut"). Note the named competitors and the basis of competition the company claims (price, performance, ecosystem, service).
+2. **Benchmark against competitors.** `python3 ${CLAUDE_SKILL_DIR}/../comps-valuation/scripts/comps.py TICKER COMP1 COMP2 COMP3 --no-quote` returns TTM margins, ROIC and growth side by side (no prices needed). Superior economics vs. direct rivals is the signature of power. Parity suggests no moat, whatever the narrative says.
+3. **What the company says about competition.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 1` (Business: grep "compet", "customer", "patent", "network", "switching", "brand", "scale"). `--section 1A` (Risk Factors: grep "competition", "pricing pressure", "concentration", "regulat", "substitut"). Note the named competitors and the basis of competition the company claims (price, performance, ecosystem, service).
 4. **Segments and concentration.** `--section 7` (MD&A) and `--section 8` (Notes) for segment revenue and operating income, customer concentration (">10% of revenue" disclosures), backlog/RPO, retention or net revenue retention if disclosed, and pricing commentary. Search for "price increase", "mix", "net revenue retention", "churn", "renewal".
-5. **Trend of the moat language.** `python3 ../filing-diff/scripts/diff_sections.py TICKER --form 10-K --section 1A` shows new competition, regulation and substitute risks added this year. New named competitors or a new "pricing pressure" paragraph are early narrowing signals.
+5. **Trend of the moat language.** `python3 ${CLAUDE_SKILL_DIR}/../filing-diff/scripts/diff_sections.py TICKER --form 10-K --section 1A` shows new competition, regulation and substitute risks added this year. New named competitors or a new "pricing pressure" paragraph are early narrowing signals.
 6. **Market share (external, cited).** Web-search industry share data (IDC, Gartner, Counterpoint, company investor days, trade bodies) for 3–5 years. Cite site and date for every point. If no credible data exists, say so.
 7. **Threat map.** Disruptors (new tech, new business models), regulation and antitrust, substitutes, and customer or supplier bargaining shifts. Use 10-K risk factors, the filing-diff output and cited news.
 8. **Score, judge the trend, render.**
@@ -97,7 +99,7 @@ Report JSON per [../sec-edgar/references/report-schema.md](../sec-edgar/referenc
 
 Render:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-moat-analysis.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-moat-analysis.json --out-dir earnings-desk-reports
 ```
 **In chat:** "Moat: Narrow, Trend: Stable. The power is switching costs (4/5: NRR 115%, 3-yr contracts); ROIC has held 25–30% for 8 years. The main threat is X." Then the report paths.
 

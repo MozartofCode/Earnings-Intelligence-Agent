@@ -24,21 +24,23 @@ Revenue is an output. KPIs are the engine: retention, pricing, volume, capacity,
 - `kpis` (optional): a list to track. Default: pick 4-8 from `references/kpi-library.md` for the company's industry, plus anything the company itself headlines.
 - `quarters` (optional): default 8, up to 12.
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 1. **Identify the industry and the KPI set.**
-   `python3 ../sec-edgar/scripts/edgar.py profile TICKER` (SIC code and description). Map to an industry in `references/kpi-library.md`. Then read the latest release (`python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 150000 > /tmp/TICKER-er0.json`) and note every operating metric the company headlines or tables. The company's own headline KPIs override the library.
+   `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py profile TICKER` (SIC code and description). Map to an industry in `references/kpi-library.md`. Then read the latest release (`python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 150000 > /tmp/TICKER-er0.json`) and note every operating metric the company headlines or tables. The company's own headline KPIs override the library.
 2. **Look for XBRL first (cleanest series).** Some KPIs are tagged:
-   - Standard: `python3 ../sec-edgar/scripts/edgar.py concept TICKER RevenueRemainingPerformanceObligation` (RPO), `ContractWithCustomerLiabilityCurrent` (deferred revenue), `RevenueRemainingPerformanceObligationPercentage` (share recognized within the next period, which gives cRPO), `InventoryNet`, `NumberOfStores`, `NumberOfRealEstateProperties`, `AreaOfRealEstateProperty`.
+   - Standard: `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py concept TICKER RevenueRemainingPerformanceObligation` (RPO), `ContractWithCustomerLiabilityCurrent` (deferred revenue), `RevenueRemainingPerformanceObligationPercentage` (share recognized within the next period, which gives cRPO), `InventoryNet`, `NumberOfStores`, `NumberOfRealEstateProperties`, `AreaOfRealEstateProperty`.
    - Other standard taxonomies: `--taxonomy srt` or `--taxonomy dei` for a few count-type facts.
    - Custom, company-prefixed tags (e.g. `nflx:PaidMemberships`) are generally **not** served by SEC's XBRL API, so `concept` returns "not reported" for them. That is expected: go to text extraction (step 3). If you know the filing, the tagged value is still visible in the filing's own document, so cite that accession.
    `concept` returns raw, undimensioned facts: dedupe by `end` date and keep the latest-filed value (restated figures supersede). Sanity-check scale and scope against the filing text. A fact can cover only a subset (e.g. one store class) or carry an obvious scaling error in an old filing.
 3. **Extract from text (most KPIs live here).** Loop over releases (`--index 0..N`, saved to `/tmp/TICKER-er$i.json`) and the 10-Q MD&A:
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-Q --section mdna --index 0
-   python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section mdna --index 0
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-Q --section mdna --index 0
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section mdna --index 0
    ```
    Long text is written to `saved_to`; `grep -n -i` it for the metric name and its synonyms (e.g. "net dollar retention", "dollar-based net expansion"). Q4 values usually appear only in the 10-K or the Q4 release. Record for every data point: period end, value, unit, exact definition wording, source accession, and whether it was restated.
-4. **Pull revenue and the core financials** for ratio KPIs and sanity checks: `python3 ../financial-statements/scripts/statements.py TICKER --quarters 12`. Derive KPIs the company implies but doesn't print (see framework), and label them **derived**.
+4. **Pull revenue and the core financials** for ratio KPIs and sanity checks: `python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --quarters 12`. Derive KPIs the company implies but doesn't print (see framework), and label them **derived**.
 5. **Check definitions.** Compare the KPI definition text across filings. Any change (cohort basis, inclusion of acquisitions, "paid" vs. "active" users, trailing-12-month vs. point-in-time) creates a seam. Flag it and do not splice series across a definition change without saying so.
 6. **Compute trends** (framework), build the series table, pick the chart(s), assign the verdict.
 7. Write and render the report.
@@ -101,7 +103,7 @@ Write `/tmp/<TICKER>-kpi-tracker.json` per `../sec-edgar/references/report-schem
 
 Render:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/<TICKER>-kpi-tracker.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-kpi-tracker.json --out-dir earnings-desk-reports
 ```
 Fix warnings. In chat: verdict, the leading KPI's last value with y/y and acceleration, any definition change, and the HTML + Markdown paths.
 

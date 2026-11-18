@@ -26,9 +26,11 @@ Every earnings report also tells you something about other companies. A hypersca
 - `quarter` (optional): defaults to the latest print.
 - Data setup (SEC user agent, optional keys) is covered in `sec-edgar`.
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow: single-print mode
 1. **Digest the source print.**
-   `python3 ../sec-edgar/scripts/edgar.py earnings-release SOURCE --max-chars 150000 > /tmp/SOURCE-er0.json`, then `grep`/`Read` the file. If an `earnings-recap` already exists for this print, reuse it. Pull out the facts that matter for other companies:
+   `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release SOURCE --max-chars 150000 > /tmp/SOURCE-er0.json`, then `grep`/`Read` the file. If an `earnings-recap` already exists for this print, reuse it. Pull out the facts that matter for other companies:
    - demand commentary by end market and region
    - pricing actions
    - inventory, both the company's own and in the channel
@@ -38,22 +40,22 @@ Every earnings report also tells you something about other companies. A hypersca
 
    Then get the transcript by web search (company IR first) and look for comments about suppliers, customers and competitors. Cite the URL and date.
 2. **Build the value-chain map.**
-   - **Peers and competitors.** `python3 ../sec-edgar/scripts/edgar.py peers SOURCE --limit 30` gives a raw list only. SIC codes are coarse, so filter it by business model. Add competitors the source names in its own 10-K: `python3 ../sec-edgar/scripts/edgar.py filing-text SOURCE --form 10-K --section 1`, then grep `saved_to` for "compet".
+   - **Peers and competitors.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py peers SOURCE --limit 30` gives a raw list only. SIC codes are coarse, so filter it by business model. Add competitors the source names in its own 10-K: `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text SOURCE --form 10-K --section 1`, then grep `saved_to` for "compet".
    - **Customers and suppliers.** Grep the source's 10-K Items 1 and 1A and its revenue/concentration note for "customer", "% of revenue", "% of net revenue", "sole source", "single source" and "supplier".
    - **Reverse lookup.** For each candidate target, grep *its* 10-K (`filing-text TARGET --form 10-K`, plus `--section 1A`) for the source's name. A supplier that discloses "Customer A accounted for 19% of revenue" has a direct link even if the customer is unnamed. Match the customer by segment, geography and size, and label the match **inferred**.
-   - **Exposure sizing.** Use `python3 ../sec-edgar/scripts/edgar.py facts TARGET --periods 4` and the target's segment and geographic notes to estimate how much of the target's revenue the signal touches.
+   - **Exposure sizing.** Use `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py facts TARGET --periods 4` and the target's segment and geographic notes to estimate how much of the target's revenue the signal touches.
 3. **Grade each link** using the framework below: relationship, evidence, exposure %, signal, direction, strength, lag.
-4. **Check what is priced in.** Run `python3 ../sec-edgar/scripts/market.py reaction TARGET --date <source release date>` for each target and for the source. If the source reported before the market opened, use the prior trading day as the date. If a target has already made the sympathy move, the read-through is already consensus. If a strong direct signal produced no move, it is either the opportunity or the trap, and the report must explain which. Before you credit the source print, check headlines for target-specific news that day. Get each target's next report date with `python3 ../sec-edgar/scripts/market.py calendar TARGET` or a cited web search.
-5. **Cross-check against the target's own words.** Pull the target's latest guidance with `python3 ../sec-edgar/scripts/edgar.py earnings-release TARGET` and its KPI trend (`kpi-tracker` logic). Does the source's signal confirm or contradict what the target said last quarter? A contradiction is the most valuable finding this skill can produce.
+4. **Check what is priced in.** Run `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py reaction TARGET --date <source release date>` for each target and for the source. If the source reported before the market opened, use the prior trading day as the date. If a target has already made the sympathy move, the read-through is already consensus. If a strong direct signal produced no move, it is either the opportunity or the trap, and the report must explain which. Before you credit the source print, check headlines for target-specific news that day. Get each target's next report date with `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py calendar TARGET` or a cited web search.
+5. **Cross-check against the target's own words.** Pull the target's latest guidance with `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TARGET` and its KPI trend (`kpi-tracker` logic). Does the source's signal confirm or contradict what the target said last quarter? A contradiction is the most valuable finding this skill can produce.
 6. Write and render the report.
 
 ## Workflow: sector-scan mode
 1. **Define the set.** Use the user's list, or run `peers` and filter to 6-15 names by business model. Say why each name is included.
 2. **Collect each print.** For each ticker:
-   - Run `python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER > /tmp/TICKER-er0.json`. Check `filing.filed` to confirm the print is from this season.
+   - Run `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER > /tmp/TICKER-er0.json`. Check `filing.filed` to confirm the print is from this season.
    - Extract revenue, EPS (state the basis), the guide, and the guide change against the prior guide.
-   - Get consensus from `python3 ../sec-edgar/scripts/market.py estimates TICKER` / `surprises TICKER`, or from a cited web search. Use pre-print figures.
-   - Get the reaction from `python3 ../sec-edgar/scripts/market.py reactions TICKER --n 1`. `move_pct` covers both pre-market and after-close releases; use `pre_market_move_pct` / `after_close_move_pct` to isolate the session once you know the release time.
+   - Get consensus from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py estimates TICKER` / `surprises TICKER`, or from a cited web search. Use pre-print figures.
+   - Get the reaction from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py reactions TICKER --n 1`. `move_pct` covers both pre-market and after-close releases; use `pre_market_move_pct` / `after_close_move_pct` to isolate the session once you know the release time.
 3. **Build the scoreboard.** Tally beats, misses, raises and cuts. Extract 3-5 common themes (pricing, volumes, inventory, FX, tariffs, AI demand, consumer health) and record which companies said what, with citations.
 4. **Flag outliers and preview the rest.** An outlier is, for example, the one company that missed when everyone else beat. Decide whether it is company-specific or an early warning, and give the evidence. Then list the names still to report and what the season so far implies for each.
 
@@ -126,7 +128,7 @@ Write `/tmp/<SOURCE>-read-through.json`, or `/tmp/<SECTOR>-read-through.json` in
 
 Render:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/<SOURCE>-read-through.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<SOURCE>-read-through.json --out-dir earnings-desk-reports
 ```
 Fix any warnings. In chat, print:
 - the verdict

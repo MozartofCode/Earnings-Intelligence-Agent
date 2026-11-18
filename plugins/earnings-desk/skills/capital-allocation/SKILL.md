@@ -25,34 +25,36 @@ Over a decade, what management does with the cash matters as much as how much ca
 - `--years` 10 (default for this skill; use 5 for young companies).
 - Optional: a cost-of-capital assumption (default 9% for a typical large cap, 10–11% for small caps or cyclicals; always label it as an assumption).
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 1. **Ten years of cash flows and returns**
    ```bash
-   python3 ../financial-statements/scripts/statements.py TICKER --years 10 --quarters 8 > /tmp/TICKER-st.json
+   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 10 --quarters 8 > /tmp/TICKER-st.json
    ```
    Per year use `operating_cash_flow`, `capex`, `fcf`, `acquisitions`, `buybacks`, `dividends_paid`, `sbc`, `total_debt`, `net_debt`, `cash`, `goodwill`, `shares_diluted`, `roic_pct`, `eps_diluted`. `acquisitions` is null for many companies that tag deals differently (MSFT is null even with Activision in FY24). When it's null, read the 10-K cash flow statement, and treat a goodwill jump as the tell (MSFT goodwill went from $67.9B to $119.2B in FY24).
 
 2. **Shares repurchased, to price the buybacks**
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py concept TICKER StockRepurchasedAndRetiredDuringPeriodShares | python3 -c "import json,sys; d=json.load(sys.stdin); rows=[r for u in d.get('units',{}).values() for r in u if r.get('form')=='10-K' and r.get('fp')=='FY' and r.get('frame') and 'start' in r]; print(d.get('error') or '\n'.join('%s %s %s' % (r['end'], r['val'], r['accn']) for r in rows[-10:]))"
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py concept TICKER StockRepurchasedAndRetiredDuringPeriodShares | python3 -c "import json,sys; d=json.load(sys.stdin); rows=[r for u in d.get('units',{}).values() for r in u if r.get('form')=='10-K' and r.get('fp')=='FY' and r.get('frame') and 'start' in r]; print(d.get('error') or '\n'.join('%s %s %s' % (r['end'], r['val'], r['accn']) for r in rows[-10:]))"
    ```
    If the tag isn't reported, try `StockRepurchasedDuringPeriodShares`, then `TreasuryStockSharesAcquired` (AAPL reports the tag in the command above; MSFT reports `StockRepurchasedDuringPeriodShares`). As a last resort use the 10-K Item 5 "Issuer Purchases of Equity Securities" table or the equity note, which often states the average price paid. The same snippet works for any annual tag: `GoodwillImpairmentLoss`, `PaymentsToAcquireBusinessesNetOfCashAcquired`, `ProceedsFromIssuanceOfLongTermDebt`, `RepaymentsOfLongTermDebt`, `PaymentsForRepurchaseOfCommonStock`.
 
 3. **Current price** for buyback ROI and dividend yield
    ```bash
-   python3 ../sec-edgar/scripts/market.py quote TICKER
-   python3 ../sec-edgar/scripts/market.py history TICKER --range 10y   # optional: price path vs. buyback years
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py quote TICKER
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py history TICKER --range 10y   # optional: price path vs. buyback years
    ```
 
 4. **Management's stated framework and the deals**
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 7 --max-chars 40000
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 7 --max-chars 40000
    ```
-   Find the "Liquidity and Capital Resources" discussion: the stated priorities, authorization remaining, dividend policy, debt targets and acquisitions. Grep the saved 10-K for `"business combination|acquisition|purchase price|goodwill|impairment"` to list deals with prices, and check the goodwill note for impairments by reporting unit. `python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 100` shows Items 1.01 and 2.01 (deal announcements and closings) and 2.06 (impairments).
+   Find the "Liquidity and Capital Resources" discussion: the stated priorities, authorization remaining, dividend policy, debt targets and acquisitions. Grep the saved 10-K for `"business combination|acquisition|purchase price|goodwill|impairment"` to list deals with prices, and check the goodwill note for impairments by reporting unit. `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 100` shows Items 1.01 and 2.01 (deal announcements and closings) and 2.06 (impairments).
 
 5. **Pay alignment from the proxy**
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form "DEF 14A" --max-chars 2000    # prints saved_to
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form "DEF 14A" --max-chars 2000    # prints saved_to
    ```
    Section extraction is **not reliable for proxies**: they have no "Item N." headings, so `--section "Compensation Discussion and Analysis"` usually matches the table of contents and runs to the end of the document (tested on MSFT's 2026 proxy). Grep the saved file instead (quote the path, because the filename contains a space):
    ```bash
@@ -134,7 +136,7 @@ Write `/tmp/TICKER-capital-allocation.json` per `../sec-edgar/references/report-
 - **sources**: statements.py accessions, concept-tag accessions, 10-K and DEF 14A accession numbers, the quote source and timestamp.
 
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-capital-allocation.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-capital-allocation.json --out-dir earnings-desk-reports
 ```
 **In chat** give the grade with a one-line reason, a compact sources-and-uses table, the buyback ROI line, the best and worst decision of the decade, the pay-alignment verdict, and the report paths.
 

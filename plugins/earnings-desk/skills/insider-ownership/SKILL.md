@@ -24,10 +24,12 @@ Insiders sell for many reasons but buy for one. This skill filters the noise of 
 - `TICKER` (required).
 - `--days` window (default 365 for this skill; 180 for a quick read). `--limit` is the number of Form 4 **filings** scanned (default 40). Raise it to 100–200 for mega-caps, where 40 filings may cover only a few months.
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 1. **Form 4 transactions**
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py insiders TICKER --days 365 --limit 150 > /tmp/TICKER-insiders.json
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py insiders TICKER --days 365 --limit 150 > /tmp/TICKER-insiders.json
    ```
    Output: `window_days`, `filings_scanned`, `parse_errors`, `summary` (`open_market_buys`, `buy_value`, `open_market_sales`, `sale_value`, `unique_buyers`, `sales_under_10b5_1`), and `transactions[]` with `filed`, `date`, `insider`, `role`, `code`, `type`, `acquired_disposed`, `shares`, `price`, `value`, `shares_after`, `10b5_1_plan` and `url`.
    Codes: **P** open-market buy, **S** open-market sale, A grant or award, M or X option exercise, F tax withholding, G gift, D disposition to issuer, C conversion, J other. **Only P and S carry signal.** F and A are mechanical, and G is estate planning.
@@ -35,21 +37,21 @@ Insiders sell for many reasons but buy for one. This skill filters the noise of 
 
 2. **Planned sales and 13D/13G filings**
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms "144,SCHEDULE 13D,SCHEDULE 13D/A,SC 13D,SC 13D/A,SCHEDULE 13G,SCHEDULE 13G/A,SC 13G,SC 13G/A" --limit 40
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms "144,SCHEDULE 13D,SCHEDULE 13D/A,SC 13D,SC 13D/A,SCHEDULE 13G,SCHEDULE 13G/A,SC 13G,SC 13G/A" --limit 40
    ```
    Form 144 means notice of a proposed sale by an affiliate: sales coming in the next 90 days. Schedule 13D means an active holder above 5% (activist intent). 13G means a passive holder above 5%. EDGAR renamed the forms from "SC 13D/G" to "SCHEDULE 13D/G" in late 2024, so query both names. Open a 13D's text (`index_url`) to read Item 4, "Purpose of Transaction".
 
 3. **Ownership structure from the proxy**
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form "DEF 14A" --max-chars 2000      # prints saved_to
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form "DEF 14A" --max-chars 2000      # prints saved_to
    grep -n -i -E "security ownership of certain beneficial owners|beneficial owner|class b|class c|votes per share|voting power|controlled company|sunset|pledg|hedging policy|stock ownership guideline" "<saved_to>" | head -50
    ```
    Proxies have no "Item N." headings, so section extraction is unreliable. Grep the saved file (quote the path; it contains a space). Extract: insiders' and directors' combined % of shares and of **votes**, dual-class terms (votes per share, sunset clauses), founder control, "controlled company" exemptions, pledged shares, hedging and ownership-guideline policies.
 
 4. **Earnings dates for timing analysis**
    ```bash
-   python3 ../sec-edgar/scripts/market.py reactions TICKER --n 8
-   python3 ../sec-edgar/scripts/market.py history TICKER --range 1y
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py reactions TICKER --n 8
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py history TICKER --range 1y
    ```
    Use the 8-K Item 2.02 dates to place each P and S trade relative to earnings (most companies' trading windows open about 2 days after the release and close 2–4 weeks before quarter end). Use the price history to see whether buys came after drawdowns.
 
@@ -104,7 +106,7 @@ Write `/tmp/TICKER-insider-ownership.json` per `../sec-edgar/references/report-s
 - **sources**: Form 4 index URLs for every cited trade, DEF 14A and 13D/G accession numbers, and every web source with site and date.
 
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-insider-ownership.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-insider-ownership.json --out-dir earnings-desk-reports
 ```
 **In chat** give the verdict and the key trade, a compact table of meaningful P and S trades, the ownership and control structure in one line, short interest (cited) if found, and the report paths.
 

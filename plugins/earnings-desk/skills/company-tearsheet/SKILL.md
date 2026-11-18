@@ -24,18 +24,20 @@ Everything a portfolio manager wants in the first five minutes: what the busines
 - `TICKER` (required). US-listed SEC filers. Foreign private issuers file 20-F, so use `--form 20-F` where a command takes `--form`.
 - Optional: years of history (default 5), focus (for example "just the segments").
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 Scripts are relative to this skill folder. Set `SEC_USER_AGENT` first (see `sec-edgar`). If a command returns 403, ask the user for a name and email; never invent one.
 
 1. **Identity and filing cadence**
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py profile TICKER
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py profile TICKER
    ```
    Note SIC description, fiscal year end (`fiscalYearEnd` is MMDD), state of incorporation and the latest 10-K, 10-Q, 8-K and DEF 14A. If the SIC is a bank, insurer or REIT (SIC 60–67), switch the KPI set (see Analysis framework).
 
 2. **Business and segments** (how it makes money)
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 1 --max-chars 25000
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 1 --max-chars 25000
    ```
    Read Item 1 for products, customers, go-to-market and revenue model (one-time vs. recurring, unit vs. subscription vs. usage vs. transaction). For segment revenue and operating income, grep the full 10-K that was saved to `saved_to` (XBRL segment data is not in the companyfacts API, so this is text work):
    ```bash
@@ -45,32 +47,32 @@ Scripts are relative to this skill folder. Set `SEC_USER_AGENT` first (see `sec-
 
 3. **Five-year financials and trailing twelve months**
    ```bash
-   python3 ../financial-statements/scripts/statements.py TICKER --years 5 --quarters 8
+   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 5 --quarters 8
    ```
    Use `annual[]` for the table (revenue, growth, gross and operating margin, net income, diluted EPS, FCF, FCF margin, ROIC, diluted shares) and `ttm` for valuation. Check `missing_metrics` and `derived_quarter` flags.
 
 4. **Price and market cap**
    ```bash
-   python3 ../sec-edgar/scripts/market.py quote TICKER
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py quote TICKER
    ```
    Record `price`, `source`, `as_of` and `market_cap` (plus `market_cap_note`: keyless market cap is price times the latest SEC shares outstanding). If `available: false`, use web search and cite site and date.
 
 5. **Insiders** (snapshot only; use `insider-ownership` for the full read)
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py insiders TICKER --days 180
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py insiders TICKER --days 180
    ```
    Report open-market buys (code P) vs. sales (code S), unique buyers and total values. Ignore grants (A), tax withholding (F) and gifts (G) for signal purposes.
 
 6. **Catalysts**
    ```bash
-   python3 ../sec-edgar/scripts/market.py calendar TICKER
-   python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 15
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py calendar TICKER
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 15
    ```
    If the calendar is keyless (`available: false`), present `estimated_next` as an **estimate** and confirm it by web search on the investor-relations site. Scan recent 8-K `items` for M&A (1.01, 2.01), leadership changes (5.02), guidance updates (7.01 or 2.02) and auditor events (4.01, 4.02). Add known events from the 10-K and press releases: product launches, investor days, debt maturities, regulatory decisions, lock-up expiries.
 
 7. **Bull, bear and the debate.** Write these last, from the evidence above. Optionally pull the latest press release for management's framing:
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 15000
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 15000
    ```
 
 ## Analysis framework
@@ -128,7 +130,7 @@ Write `/tmp/TICKER-company-tearsheet.json` per `../sec-edgar/references/report-s
 
 Render and fix any warnings:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-company-tearsheet.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-company-tearsheet.json --out-dir earnings-desk-reports
 ```
 **In chat** print the business-model sentence, the KPI row as a compact table, the three bulls and three bears in a few words each, the key debate, the next catalyst date, then the HTML and Markdown paths.
 

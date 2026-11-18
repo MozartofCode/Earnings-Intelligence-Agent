@@ -24,21 +24,23 @@ A multiple only means something next to the right peers and the right fundamenta
 - Prices: `--prices "AAPL=230,MSFT=500"` with a citation is preferred. Without it, market.py quote is used (keyless, may be rate-limited).
 - Optional `--target` if the target isn't listed first.
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 Commands are relative to this skill folder.
 
-1. **Raw universe.** `python3 ../sec-edgar/scripts/edgar.py peers TICKER --limit 25` returns companies sharing the SIC code. Treat this as a starting list only, because SIC codes are coarse and often stale.
-2. **Understand the target's business model.** `python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 1` gives Item 1 Business. Note the segments, revenue model (recurring vs. transactional), customers, end markets, and the competitors the company names itself (search the saved file for "compet").
+1. **Raw universe.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py peers TICKER --limit 25` returns companies sharing the SIC code. Treat this as a starting list only, because SIC codes are coarse and often stale.
+2. **Understand the target's business model.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 1` gives Item 1 Business. Note the segments, revenue model (recurring vs. transactional), customers, end markets, and the competitors the company names itself (search the saved file for "compet").
 3. **Construct the peer set (5–10 names) with explicit judgment.** Add named competitors and business-model twins that SIC misses, and drop SIC matches that don't fit. Record a one-line reason for **every** inclusion and exclusion (see the framework below). If segments differ wildly, consider two peer groups, or sum-of-the-parts.
 4. **Prices.** For each ticker, use a cited price (market.py quote, or web search with site and time). Use the same date for every name.
 5. **Run the table:**
    ```bash
-   python3 scripts/comps.py TARGET PEER1 PEER2 PEER3 PEER4 --prices "TARGET=123.4,PEER1=56.7,..."
+   python3 ${CLAUDE_SKILL_DIR}/scripts/comps.py TARGET PEER1 PEER2 PEER3 PEER4 --prices "TARGET=123.4,PEER1=56.7,..."
    ```
    Add `--no-quote` to skip keyless price lookups entirely. Missing prices never abort the run: fundamentals still print, price multiples are `null`, and the reason appears in `flags`.
    Output: `rows[]` (per-ticker multiples and fundamentals, `ttm_periods`, `accessions`, `flags`), `peer_medians_ex_target`, `target_vs_median` (premium %), `regression_ev_sales_on_growth` (slope, intercept, r², fitted value and premium to the line per ticker), and `errors[]`.
-6. **Quality check the rows.** Read `flags`. Derived quarters are normal (Q4 = FY − 9M). Watch for mismatched fiscal calendars (`ttm_periods`), negative equity (ROIC is meaningless), financials (EV multiples are nulled by design), and one-offs inflating TTM EBIT (impairments, gains). Check the big ones with `python3 ../financial-statements/scripts/statements.py TICKER`.
-7. **Adjust where it matters.** Add leases, minority interests and pensions to EV by hand if they're material (see [../reverse-dcf/references/valuation-notes.md](../reverse-dcf/references/valuation-notes.md) §5–6). Use consensus forward estimates if you have them (`python3 ../sec-edgar/scripts/market.py estimates TICKER` with a key, or web search, cited). Forward multiples matter more than trailing ones for fast growers.
+6. **Quality check the rows.** Read `flags`. Derived quarters are normal (Q4 = FY − 9M). Watch for mismatched fiscal calendars (`ttm_periods`), negative equity (ROIC is meaningless), financials (EV multiples are nulled by design), and one-offs inflating TTM EBIT (impairments, gains). Check the big ones with `python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER`.
+7. **Adjust where it matters.** Add leases, minority interests and pensions to EV by hand if they're material (see [../reverse-dcf/references/valuation-notes.md](../reverse-dcf/references/valuation-notes.md) §5–6). Use consensus forward estimates if you have them (`python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py estimates TICKER` with a key, or web search, cited). Forward multiples matter more than trailing ones for fast growers.
 8. **Judge the premium, make the call, render.**
 
 ## Analysis framework
@@ -98,7 +100,7 @@ Report JSON per [../sec-edgar/references/report-schema.md](../sec-edgar/referenc
 
 Render:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-comps-valuation.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-comps-valuation.json --out-dir earnings-desk-reports
 ```
 **In chat:** the relative-value call in one line ("Trades at 22x EV/EBIT vs. a 26x peer median despite +8 pts better ROIC: looks cheap relative to the group"), the most debatable peer choice, and the report paths.
 

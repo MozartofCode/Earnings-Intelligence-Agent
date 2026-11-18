@@ -42,7 +42,7 @@ Agents are plugin subagents. Call them with `subagent_type: "earnings-desk:<name
 ## Workflow
 
 ### Phase 0 · Setup (you, about 1 minute)
-1. **Resolve tool paths.** This skill's base directory is `.../skills/deep-dive`, so set `S` to its parent `.../skills`. If you don't know it, Glob `**/earnings-desk/**/skills/sec-edgar/scripts/edgar.py`. Use **absolute paths** everywhere, because subagents run in the user's project, not the plugin.
+1. **Resolve tool paths.** Set `S` to the absolute path of `${CLAUDE_SKILL_DIR}/..` (the plugin's `skills/` folder; Claude Code fills in `${CLAUDE_SKILL_DIR}`, elsewhere use the folder containing this `SKILL.md`). Resolve it once with `S=$(cd "${CLAUDE_SKILL_DIR}/.." && pwd)`. If that fails, Glob `**/earnings-desk/**/skills/sec-edgar/scripts/edgar.py`. Use **absolute paths** everywhere, because subagents run in the user's project, not the plugin.
 2. **Check setup:**
    ```bash
    python3 $S/sec-edgar/scripts/market.py status

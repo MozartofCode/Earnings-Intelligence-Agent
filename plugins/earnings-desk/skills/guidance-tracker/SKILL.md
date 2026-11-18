@@ -25,18 +25,20 @@ A guide is only as good as the team that issues it. Some managements set bars th
 - `lookback` (optional): number of quarterly releases, default 12 (3 years), max ~20.
 - `metrics` (optional): restrict to specific metrics; default is every guided metric found.
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 1. **Inventory the releases.**
-   `python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 80` and keep those with items containing `2.02`. Then pull each release, saving to disk to protect context:
+   `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 80` and keep those with items containing `2.02`. Then pull each release, saving to disk to protect context:
    ```bash
-   for i in $(seq 0 11); do python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER --index $i --max-chars 150000 > /tmp/TICKER-er$i.json; done
+   for i in $(seq 0 11); do python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index $i --max-chars 150000 > /tmp/TICKER-er$i.json; done
    ```
    Some companies give guidance only on the call or in a separate investor presentation (often filed as Ex.99.2, which `earnings-release` includes when present). For call-only guidance, web search the transcript (IR site first) and cite it. Some guide only at an annual investor day: capture that too, with the date.
 2. **Extract every guide.** Search each release for "outlook", "guidance", "expects", "anticipates", "for the fourth quarter", "full year", "fiscal 20", "range", "approximately". For each statement record: issue date, accession, period guided (Q or FY, with fiscal label), metric, basis (GAAP / non-GAAP / constant currency / organic), low, high, midpoint, and any stated assumptions (FX rate, tax rate, share count, M&A excluded). Store as a table. Point estimates have low = high; "at least X" gets low = X and no high (note it).
-3. **Get the actuals.** For each guided period, the actual comes from the release reporting that period (same basis as the guide). Cross-check revenue, margins, EPS, capex with XBRL: `python3 ../financial-statements/scripts/statements.py TICKER --years 5 --quarters 12` or `python3 ../sec-edgar/scripts/edgar.py facts TICKER --periods 12 --annual 5`. Non-GAAP actuals come from the release reconciliation only.
+3. **Get the actuals.** For each guided period, the actual comes from the release reporting that period (same basis as the guide). Cross-check revenue, margins, EPS, capex with XBRL: `python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 5 --quarters 12` or `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py facts TICKER --periods 12 --annual 5`. Non-GAAP actuals come from the release reconciliation only.
 4. **Score each guide-actual pair** (framework below). Build the guidance evolution path for each fiscal year (initial FY guide → each update → actual).
-5. **Look for regime changes.** Metrics added, dropped, switched basis, ranges widened, guidance suspended, cadence changed (quarterly → annual), and management changes in the window (8-K Item 5.02, `python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 80` and check items).
-6. **Optional context.** `python3 ../sec-edgar/scripts/market.py reactions TICKER --n 12` to see whether guide raises or cuts drove the reactions. Consensus at guide time (web search, cited) tells you whether the guide landed above or below the street.
+5. **Look for regime changes.** Metrics added, dropped, switched basis, ranges widened, guidance suspended, cadence changed (quarterly → annual), and management changes in the window (8-K Item 5.02, `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 80` and check items).
+6. **Optional context.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py reactions TICKER --n 12` to see whether guide raises or cuts drove the reactions. Consensus at guide time (web search, cited) tells you whether the guide landed above or below the street.
 7. Write and render the report.
 
 ## Analysis framework
@@ -103,7 +105,7 @@ Write `/tmp/<TICKER>-guidance-tracker.json` per `../sec-edgar/references/report-
 
 Render:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/<TICKER>-guidance-tracker.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-guidance-tracker.json --out-dir earnings-desk-reports
 ```
 Fix warnings. In chat: verdict, hit rate and mean beat for revenue and EPS, any dropped metric, the credibility-adjusted current guide, and the HTML + Markdown paths.
 

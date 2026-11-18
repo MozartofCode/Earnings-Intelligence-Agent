@@ -24,6 +24,8 @@ The press release is lawyered. The prepared remarks are rehearsed. The Q&A is wh
 - `transcript` (optional): a file path or pasted text. Strongly preferred when the user has it.
 - `compare` (optional): number of prior calls to compare (default 1, max 4).
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 1. **Get the transcript(s).** In this order:
    - User-provided file or text. Save pasted text to `/tmp/<TICKER>-<Q>-transcript.txt`.
@@ -31,7 +33,7 @@ The press release is lawyered. The prepared remarks are rehearsed. The Q&A is wh
    - FMP with `FMP_API_KEY`: `https://financialmodelingprep.com/stable/earning-call-transcript?symbol=TICKER&year=YYYY&quarter=Q&apikey=$FMP_API_KEY` (fetch with WebFetch or curl; never echo the key).
    - If no full transcript is reachable, say so. Work from what is available (news summaries, prepared remarks only) and **label the analysis partial**. Never reconstruct quotes from memory.
    Repeat for the comparison quarter(s).
-2. **Anchor on the numbers.** `python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER` (and `--index 1`) so you know what the call was defending: misses, guide changes, one-offs.
+2. **Anchor on the numbers.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER` (and `--index 1`) so you know what the call was defending: misses, guide changes, one-offs.
 3. **Segment the transcript.** Split into: (a) operator/safe-harbor boilerplate (exclude), (b) prepared remarks by speaker (CEO, CFO, other), (c) Q&A as question/answer pairs with analyst name and firm. Record word counts for each block.
 4. **Lexicon counts.** Using `references/lexicons.md`, count hits per category per 1,000 words, separately for prepared remarks and Q&A, for the current and prior call(s). Do it with a quick script (`grep -o -i -w` per term, or a Python one-off over the saved text). Handle the documented exclusions (e.g. "may" as a month; "could" in "could not be happier" counts as positive). Report raw counts, words, and per-1k rates.
 5. **Score each Q&A exchange** with the evasion rubric in `references/lexicons.md`: classify the answer (direct / partial / pivot / non-answer / deferral / attack-the-premise), assign points, and compute the call-level Evasiveness Score (0-100). Note which topics triggered the evasion.
@@ -91,7 +93,7 @@ Write `/tmp/<TICKER>-transcript-decoder.json` per `../sec-edgar/references/repor
 
 Render:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/<TICKER>-transcript-decoder.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-transcript-decoder.json --out-dir earnings-desk-reports
 ```
 Fix warnings. In chat: verdict, evasiveness score, the most important dropped or new topic, one quote, and the HTML + Markdown paths.
 

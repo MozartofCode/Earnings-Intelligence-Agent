@@ -25,11 +25,13 @@ Quantitative screens tell you **where** to dig. The filings tell you **whether**
 - `--market-cap` (USD) for Altman's original Z. Get it from `market.py quote`.
 - Optional focus (for example a specific short-seller allegation to test).
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 1. **Market cap, then scores**
    ```bash
-   python3 ../sec-edgar/scripts/market.py quote TICKER        # use market_cap
-   python3 scripts/scores.py TICKER --market-cap <market_cap> > /tmp/TICKER-scores.json
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py quote TICKER        # use market_cap
+   python3 ${CLAUDE_SKILL_DIR}/scripts/scores.py TICKER --market-cap <market_cap> > /tmp/TICKER-scores.json
    ```
    Output: `fiscal_year` and `prior_year` (period ends compared), `sic`, `is_financial`, and:
    - `beneish`: `m_score`, `zone` (elevated above −1.78), `components` (DSRI, GMI, AQI, SGI, DEPI, SGAI, LVGI, TATA), `defaulted_to_1` (components set to 1.0 because inputs were missing), or `available: false` with `missing`.
@@ -40,33 +42,33 @@ Quantitative screens tell you **where** to dig. The filings tell you **whether**
 
 2. **Multi-year context.** Scores compare only the latest year with the prior one. Run the statements for the trend:
    ```bash
-   python3 ../financial-statements/scripts/statements.py TICKER --years 6 --quarters 8 > /tmp/TICKER-st.json
+   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 6 --quarters 8 > /tmp/TICKER-st.json
    ```
    Check net income vs. OCF for each year, receivables growth vs. revenue growth, inventory growth vs. COGS growth, and goodwill and capex trends.
 
 3. **Filing events** (auditor and restatement checks)
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K,8-K/A --limit 200
-   python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms "NT 10-K,NT 10-Q,10-K/A,10-Q/A" --limit 20
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K,8-K/A --limit 200
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms "NT 10-K,NT 10-Q,10-K/A,10-Q/A" --limit 20
    ```
    In the 8-K `items` field look for **4.01** (auditor change), **4.02** (non-reliance on prior financials, i.e. a restatement), 5.02 (CFO or CAO departures) and 2.06 (impairments). NT filings are late filings. Amended 10-K/10-Qs that restate numbers (not just Part III) are serious.
 
 4. **The 10-K read** (save it once, then grep instead of pulling everything into context)
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 9A --max-chars 15000
-   python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 8 --max-chars 2000   # prints saved_to
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 9A --max-chars 15000
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 8 --max-chars 2000   # prints saved_to
    grep -n -i -E "critical audit matter|material weakness|related part|variable interest|off-balance|guarantee|factoring|supplier finance|bill-and-hold|change in (accounting )?estimate|capitaliz|reserve|allowance|restat|principal versus agent|segment" "<saved_to>" | head -80
    ```
    Read the auditor's report (critical audit matters and the auditor's name and tenure), the revenue recognition policy, allowances and reserves, capitalization policies, related-party note, commitments and contingencies, and the segment note.
 
 5. **GAAP vs. adjusted gap** (last 4–8 quarters)
    ```bash
-   python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER --index 0 --max-chars 40000
-   python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER --index 4 --max-chars 40000
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index 0 --max-chars 40000
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index 4 --max-chars 40000
    ```
    From the reconciliation table record GAAP vs. non-GAAP operating income or EPS and each add-back. Track the gap as a % of GAAP and whether new add-back categories appear.
 
-6. **Language changes**: `python3 ../filing-diff/scripts/diff_sections.py TICKER --section "Critical Accounting"` and `--section 9a` show whether policies or controls wording changed.
+6. **Language changes**: `python3 ${CLAUDE_SKILL_DIR}/../filing-diff/scripts/diff_sections.py TICKER --section "Critical Accounting"` and `--section 9a` show whether policies or controls wording changed.
 
 7. **Score the checklist and write the verdict** using the framework below.
 
@@ -133,7 +135,7 @@ Write `/tmp/TICKER-forensic-accounting.json` per `../sec-edgar/references/report
 - **sources**: scores.py `sources` accessions, 10-K and 8-K accessions, press release exhibit URLs.
 
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-forensic-accounting.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-forensic-accounting.json --out-dir earnings-desk-reports
 ```
 **In chat** give the verdict and top driver, a compact score table, any Red or Watch items with one line of evidence each, explicitly named false positives, and the report paths.
 

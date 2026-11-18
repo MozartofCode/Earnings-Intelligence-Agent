@@ -25,15 +25,17 @@ Headlines say "beat." Your job is to say whether it was a good quarter: how much
 - `preview` (optional): a prior `earnings-preview` report to score against.
 - Data setup (SEC user agent, keys) is in `sec-edgar`.
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 1. **Pull the release.**
-   `python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 150000 > /tmp/<TICKER>-er0.json`, then `grep`/`Read` that file instead of pulling it all into context. If `truncated` is true, raise `--max-chars`. The `exhibits` URLs are your citations. Extract: revenue, segment revenue, gross margin, operating income, GAAP and non-GAAP EPS, the GAAP→non-GAAP reconciliation, guidance (next quarter and full year), share count, cash flow, buybacks. Also pull the prior quarter's release (`--index 1`) for the **prior guide** and the year-ago one (`--index 4`) for comparisons.
+   `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 150000 > /tmp/<TICKER>-er0.json`, then `grep`/`Read` that file instead of pulling it all into context. If `truncated` is true, raise `--max-chars`. The `exhibits` URLs are your citations. Extract: revenue, segment revenue, gross margin, operating income, GAAP and non-GAAP EPS, the GAAP→non-GAAP reconciliation, guidance (next quarter and full year), share count, cash flow, buybacks. Also pull the prior quarter's release (`--index 1`) for the **prior guide** and the year-ago one (`--index 4`) for comparisons.
 2. **Cross-check with XBRL.**
-   `python3 ../financial-statements/scripts/statements.py TICKER --quarters 8` for y/y growth, margins, tax rate, DSO/DIO/DPO, cash conversion, share count. If the 10-Q is already filed, `python3 ../sec-edgar/scripts/edgar.py facts TICKER --periods 8`. Releases come before the 10-Q, so XBRL for the newest quarter may lag by days; say so and use the release figures.
-3. **Consensus.** `python3 ../sec-edgar/scripts/market.py estimates TICKER` and `python3 ../sec-edgar/scripts/market.py surprises TICKER` (keys optional). Otherwise web search for the pre-print consensus (revenue, EPS, segment and KPI estimates if published) and cite site + date. Use the consensus **as of the print**, not revised post-print numbers.
-4. **Reaction.** `python3 ../sec-edgar/scripts/market.py reactions TICKER --n 8`. `move_pct` spans the prior close to the next close (covers pre-market and after-close releases); report `after_close_move_pct` or `pre_market_move_pct` once you know the release time. Compare with the stock's average absolute move and the implied move (web search, cite).
+   `python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --quarters 8` for y/y growth, margins, tax rate, DSO/DIO/DPO, cash conversion, share count. If the 10-Q is already filed, `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py facts TICKER --periods 8`. Releases come before the 10-Q, so XBRL for the newest quarter may lag by days; say so and use the release figures.
+3. **Consensus.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py estimates TICKER` and `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py surprises TICKER` (keys optional). Otherwise web search for the pre-print consensus (revenue, EPS, segment and KPI estimates if published) and cite site + date. Use the consensus **as of the print**, not revised post-print numbers.
+4. **Reaction.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py reactions TICKER --n 8`. `move_pct` spans the prior close to the next close (covers pre-market and after-close releases); report `after_close_move_pct` or `pre_market_move_pct` once you know the release time. Compare with the stock's average absolute move and the implied move (web search, cite).
 5. **Transcript (if available).** Web search the company IR page or a transcript source and cite it. Pull guidance color, one-off explanations and analyst pushback. For a full linguistic read, hand off to `transcript-decoder`.
-6. **Quality-of-beat checks** (framework below), then the margin bridge, then the thesis delta. If anything smells, run `python3 ../forensic-accounting/scripts/scores.py TICKER` for accruals and working-capital drift.
+6. **Quality-of-beat checks** (framework below), then the margin bridge, then the thesis delta. If anything smells, run `python3 ${CLAUDE_SKILL_DIR}/../forensic-accounting/scripts/scores.py TICKER` for accruals and working-capital drift.
 7. Write and render the report.
 
 ## Analysis framework
@@ -98,7 +100,7 @@ Write `/tmp/<TICKER>-earnings-recap.json` per `../sec-edgar/references/report-sc
 
 Render:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/<TICKER>-earnings-recap.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-earnings-recap.json --out-dir earnings-desk-reports
 ```
 Fix warnings. In chat, print: verdict, the three-line scorecard (revenue, EPS, guide vs. cons.), the biggest quality flag, and the HTML + Markdown paths.
 

@@ -33,24 +33,26 @@ Indexes count **only original filings of the chosen form**, newest first. Amendm
 - **10-Q:** a fiscal year has **three** 10-Qs (Q4 is reported in the 10-K). So `--old 1` is the **prior quarter** and **`--old 3` is the same quarter last year** (the right comparison for seasonal MD&A language). Verified on MSFT: index 0 = quarter ended 2026-09-30, index 3 = quarter ended 2025-09-30.
 - **Exact filings:** to compare specific filings (including an amendment that restated a section), pass `--new-accession` / `--old-accession` instead of indexes. List candidates first:
   ```bash
-  python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms 10-K,10-K/A,10-Q,10-Q/A --limit 12
+  python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 10-K,10-K/A,10-Q,10-Q/A --limit 12
   ```
+
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
 
 ## Workflow
 1. **Pick the filings** with the `filings` command above. Note filed dates and period ends for both sides of the comparison.
 
 2. **Run the core diffs** (10-K example, then 10-Q year-on-year):
    ```bash
-   python3 scripts/diff_sections.py TICKER --section 1A > /tmp/TICKER-diff-1a.json
-   python3 scripts/diff_sections.py TICKER --section 7 > /tmp/TICKER-diff-mdna.json
-   python3 scripts/diff_sections.py TICKER --section 3 > /tmp/TICKER-diff-legal.json
-   python3 scripts/diff_sections.py TICKER --section 9a > /tmp/TICKER-diff-9a.json
-   python3 scripts/diff_sections.py TICKER --section "Critical Accounting" > /tmp/TICKER-diff-cap.json
-   python3 scripts/diff_sections.py TICKER --form 10-Q --section mdna --old 3 > /tmp/TICKER-diff-q-mdna.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 1A > /tmp/TICKER-diff-1a.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 7 > /tmp/TICKER-diff-mdna.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 3 > /tmp/TICKER-diff-legal.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 9a > /tmp/TICKER-diff-9a.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section "Critical Accounting" > /tmp/TICKER-diff-cap.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --form 10-Q --section mdna --old 3 > /tmp/TICKER-diff-q-mdna.json
    ```
    Output JSON: `new_filing`, `old_filing` (form, filed, period, accession, url), `stats` (paragraph counts, added, removed, changed, unchanged, word counts, `word_delta_pct`), `added[]` and `removed[]` (each `text` up to 1,500 chars plus `priority_terms`, sorted with priority hits first and then by length), `changed[]` (`similarity`, inline `redline` with `[-deleted-]` and `{+inserted+}`, `new`, `priority_terms`), `lexicon_per_10k_words` (old, new, delta per category), `truncated` (more items than `--max-items`).
 
-3. **If a section isn't found.** The error includes `new_saved_to` and `old_saved_to` (full plain-text filings). Try the exact heading text (`--section "Legal Proceedings"`), or grep the saved files. Item 3 is often one line pointing to a note ("see Note 14 — Commitments and Contingencies"). In that case diff the note by heading text, for example `--section "Contingencies"`. To compare arbitrary text (two notes, or a 10-K/A you pulled by hand), save each to a file and run `python3 scripts/diff_sections.py --files old.txt new.txt`.
+3. **If a section isn't found.** The error includes `new_saved_to` and `old_saved_to` (full plain-text filings). Try the exact heading text (`--section "Legal Proceedings"`), or grep the saved files. Item 3 is often one line pointing to a note ("see Note 14 — Commitments and Contingencies"). In that case diff the note by heading text, for example `--section "Contingencies"`. To compare arbitrary text (two notes, or a 10-K/A you pulled by hand), save each to a file and run `python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py --files old.txt new.txt`.
 
 4. **Triage in this order:** priority-term hits in `added` → `removed` paragraphs (deletions are under-read and often the most telling) → `changed` paragraphs with low similarity (0.55–0.75 means substantive rewording) → lexicon deltas. Ignore pure date or fiscal-year rolls and renumbering.
 
@@ -105,7 +107,7 @@ Write `/tmp/TICKER-filing-diff.json` per `../sec-edgar/references/report-schema.
 - **sources**: both filings' accession numbers and URLs for every section compared.
 
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-filing-diff.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-filing-diff.json --out-dir earnings-desk-reports
 ```
 **In chat** give the verdict, the top 3 changes (each with a short quote and its meaning), a one-line stats summary, and the report paths.
 

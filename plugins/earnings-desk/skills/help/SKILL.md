@@ -23,6 +23,8 @@ earnings-desk is a free, open-source equity research desk: **20 skills and 8 spe
 ## Inputs
 - Optional: the user's question or goal, a ticker, or `setup`. With no input, show the menu.
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 1. **Read the intent.** Is it a menu request, a setup question, or a research question in disguise?
 2. **Menu request:** show the menu (below) in full, then the workflows, then ask "What are you researching?". Keep your own words short. The tables are the content.
@@ -108,7 +110,7 @@ Requests for personal advice (what to buy, how much, when to sell) get a short n
 ## Setup
 Run the check (scripts live in the sibling skill):
 ```bash
-python3 ../sec-edgar/scripts/market.py status
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py status
 ```
 If the relative path fails, Glob `**/earnings-desk/**/skills/sec-edgar/scripts/market.py` and use that path. Present the result as a table: **Key · Status · What it unlocks**. Then explain:
 

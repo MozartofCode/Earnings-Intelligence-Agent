@@ -22,19 +22,21 @@ Most research is a bull case wearing a lab coat. This skill forces real adversar
 ## Inputs
 - `TICKER` (required). Optional: the user's own thesis (to put on trial), a horizon (default 2 years), and focus areas.
 
+> **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+
 ## Workflow
 
 ### 1. Shared fact base (both sides use the same facts)
 Build a compact fact pack *before* either side argues, so the debate is about interpretation, not about whose numbers are right. Commands are relative to this skill folder:
 ```bash
-python3 ../financial-statements/scripts/statements.py TICKER --years 5 --quarters 8
-python3 ../sec-edgar/scripts/edgar.py earnings-release TICKER
-python3 ../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 1A
-python3 ../filing-diff/scripts/diff_sections.py TICKER --form 10-K --section 1A
-python3 ../forensic-accounting/scripts/scores.py TICKER
-python3 ../reverse-dcf/scripts/dcf.py TICKER --price P        # what's priced in (cite P)
-python3 ../sec-edgar/scripts/edgar.py insiders TICKER --days 365
-python3 ../sec-edgar/scripts/market.py quote TICKER
+python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 5 --quarters 8
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section 1A
+python3 ${CLAUDE_SKILL_DIR}/../filing-diff/scripts/diff_sections.py TICKER --form 10-K --section 1A
+python3 ${CLAUDE_SKILL_DIR}/../forensic-accounting/scripts/scores.py TICKER
+python3 ${CLAUDE_SKILL_DIR}/../reverse-dcf/scripts/dcf.py TICKER --price P        # what's priced in (cite P)
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py insiders TICKER --days 365
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py quote TICKER
 ```
 Summarize it in ≤ 40 lines: growth and margin trajectory, balance sheet, implied expectations (reverse DCF), latest guidance, notable risk-factor changes, forensic flags and insider activity. Every line cites its source. If prior earnings-desk reports exist in `earnings-desk-reports/` (moat, comps, recap), include their verdicts.
 
@@ -100,7 +102,7 @@ Report JSON per [../sec-edgar/references/report-schema.md](../sec-edgar/referenc
 
 Render:
 ```bash
-python3 ../sec-edgar/scripts/render_report.py /tmp/TICKER-bull-bear-debate.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-bull-bear-debate.json --out-dir earnings-desk-reports
 ```
 **In chat:** "Edge: Bulls (60/40). The debate comes down to (1) … and (2) …. The verdict flips if …." Then the report paths, and an offer to save the key variables as KPIs with `/earnings-desk:thesis-tracker`.
 
