@@ -38,7 +38,7 @@ A short report mixes three things: facts you can check, inferences from those fa
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/scripts/evidence.py events TICKER --since <report date minus 1 year> > .earnings-desk/work/TICKER-events.json
    ```
-   Auditor changes (4.01), non-reliance/restatement (4.02), listing notices (3.01), late filings (NT 10-K/10-Q) and executive departures (5.02) after the report date are strong signals, but they are not proof of a specific allegation. Read each 8-K (`python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --accession <accn> --max-chars 60000`) for the stated reason. Also look for the company's direct response (8-K, press release, IR page) and any regulator or special-committee findings (web search, cited).
+   Auditor changes (4.01), non-reliance/restatement (4.02), listing notices (3.01), late filings (NT 10-K/10-Q) and executive departures (5.02) after the report date are strong signals, but they are not proof of a specific allegation. Read each filing for the stated reason: 8-Ks with `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --accession <accn> --max-chars 60000` (main document plus exhibits, e.g. the auditor's Ex.16 letter), and any other form, including NT 10-K/10-Q late-filing notices, with `edgar.py filing-text TICKER --accession <accn>`. If `window_complete` is false in the events output, raise `--limit`. Also look for the company's direct response (8-K, press release, IR page) and any regulator or special-committee findings (web search, cited).
 
 4. **Test each claim with the right evidence** (the playbook maps claim types to sources):
    ```bash
@@ -74,6 +74,8 @@ Rules:
 - **Disclosure is not wrongdoing.** A related party that is disclosed confirms the relationship, not the alleged abuse. Say exactly which part is supported.
 - **Later events count, with care.** An auditor resignation after the report supports concerns about controls; it does not by itself prove each specific allegation.
 - **Absence of evidence:** "not found in the last 4 10-Ks" is evidence only for things companies are required to disclose there.
+- **The company's own word is not a contradiction.** If the only contrary evidence is the company's denial, its own special committee or a clean audit opinion, label the claim **Not verifiable** (and say what the review covered), not Contradicted. Contradicted needs filed facts that are incompatible with the claim, or an independent finding (regulator, court, restatement).
+- **Report timing for market reaction:** reports usually come out before the open, so use `event_day_move_pct`; later moves may reflect other news (say which).
 - **Never accuse.** Write "the filings confirm…", "consistent with the allegation…", "the report alleges…". Allegations stay allegations unless a filing, regulator or court establishes them.
 
 ## Verdict (Allegations)

@@ -157,10 +157,10 @@ def reaction(ticker, d, window=1, rows=None):
     """Move around an event on day D, robust to release timing.
 
     move_pct spans the close BEFORE D to the close `window` sessions AFTER D, so
-    it captures the reaction whether results came out pre-market on D or after
-    the close on D. after_close_move_pct (close on D -> next close) and
-    pre_market_move_pct (prior close -> close on D) let you isolate one case
-    once you know the release time.
+    it captures the reaction whether news came out before the open on D or after
+    the close on D. event_day_move_pct = prior close -> close on D (the move for
+    news released before or during the session on D); next_day_move_pct = close on
+    D -> next close (the move for news released after the close on D).
     """
     if rows is None:
         h = history(ticker, "10y")
@@ -175,8 +175,8 @@ def reaction(ticker, d, window=1, rows=None):
     out = {"event_date": d, "base_date": base["date"], "base_close": base["close"], "end_date": end["date"], "end_close": end["close"],
            "move_pct": round((end["close"] / base["close"] - 1) * 100, 2)}
     if day and day["date"] == d:
-        out["pre_market_move_pct"] = round((day["close"] / base["close"] - 1) * 100, 2)
-        out["after_close_move_pct"] = round((end["close"] / day["close"] - 1) * 100, 2)
+        out["event_day_move_pct"] = round((day["close"] / base["close"] - 1) * 100, 2)
+        out["next_day_move_pct"] = round((end["close"] / day["close"] - 1) * 100, 2)
     return out
 
 
@@ -194,7 +194,7 @@ def reactions(ticker, n=8):
     moves = [abs(x["move_pct"]) for x in out if x.get("move_pct") is not None]
     return {"ticker": co["ticker"], "source": h.get("source"), "events": out,
             "avg_abs_move_pct": round(sum(moves) / len(moves), 2) if moves else None,
-            "note": "Event date = 8-K filing date. move_pct spans prior close to next close (covers pre-market and after-close releases); use after_close_move_pct or pre_market_move_pct once the release time is known."}
+            "note": "Event date = 8-K filing date. move_pct spans prior close to next close (covers pre-market and after-close releases); use next_day_move_pct or event_day_move_pct once the release time is known."}
 
 
 # ---------------------------------------------------------------- estimates

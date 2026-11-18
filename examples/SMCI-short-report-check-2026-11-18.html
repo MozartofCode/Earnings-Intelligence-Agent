@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMCI · The filings back the governance and related-party facts, not the manipulation or Russia claims</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* earnings-desk report template: one look for every skill's output. */
+:root {
+  --paper: #f4f1ea;
+  --paper-2: #ebe6db;
+  --card: #fbfaf6;
+  --ink: #16140f;
+  --ink-2: #4a463c;
+  --ink-3: #847d6d;
+  --rule: #d8d1c1;
+  --accent: #b5501c;
+  --accent-soft: #f1dccd;
+  --pos: #1f7a4a;
+  --pos-soft: #dbeee2;
+  --neg: #b42a2a;
+  --neg-soft: #f5dcd8;
+  --warn: #9a6a00;
+  --warn-soft: #f3e7c4;
+  --chart-1: #b5501c; --chart-2: #2f5d8a; --chart-3: #1f7a4a; --chart-4: #8a5a9e; --chart-5: #847d6d;
+  --serif: "Instrument Serif", Georgia, serif;
+  --sans: "Inter Tight", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1210; --paper-2: #151a16; --card: #161b17; --ink: #ece8dc; --ink-2: #b9b4a5; --ink-3: #7d796d;
+    --rule: #28302a; --accent: #f08a4b; --accent-soft: #3a2416; --pos: #4fc283; --pos-soft: #14301f;
+    --neg: #f06a62; --neg-soft: #3a1714; --warn: #e2b23c; --warn-soft: #33290f;
+    --chart-1: #f08a4b; --chart-2: #6fa3d6; --chart-3: #4fc283; --chart-4: #c294d6; --chart-5: #7d796d;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1210; --paper-2: #151a16; --card: #161b17; --ink: #ece8dc; --ink-2: #b9b4a5; --ink-3: #7d796d;
+  --rule: #28302a; --accent: #f08a4b; --accent-soft: #3a2416; --pos: #4fc283; --pos-soft: #14301f;
+  --neg: #f06a62; --neg-soft: #3a1714; --warn: #e2b23c; --warn-soft: #33290f;
+  --chart-1: #f08a4b; --chart-2: #6fa3d6; --chart-3: #4fc283; --chart-4: #c294d6; --chart-5: #7d796d;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.6 var(--sans); }
+a { color: var(--accent); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px 80px; }
+
+/* Masthead */
+.tape { border-bottom: 1px solid var(--rule); font: 500 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.tape .wrap { display: flex; gap: 18px; align-items: center; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
+.tape .brand { color: var(--ink); font-weight: 700; }
+.tape .brand b { color: var(--accent); }
+.tape .spacer { flex: 1; }
+.theme-btn { font: inherit; color: var(--ink-2); background: none; border: 1px solid var(--rule); border-radius: 99px; padding: 6px 12px; cursor: pointer; }
+.theme-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+
+header.hero { padding: 44px 0 28px; border-bottom: 2px solid var(--ink); display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
+.plate { display: inline-flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .06em; margin-bottom: 18px; }
+.plate .tk { background: var(--ink); color: var(--paper); padding: 6px 9px; border-radius: 4px; }
+.plate .ex { color: var(--ink-3); }
+h1 { font: 400 clamp(38px, 6vw, 64px)/1.02 var(--serif); margin: 0; letter-spacing: -.01em; }
+h1 em { color: var(--accent); }
+.subtitle { margin-top: 12px; color: var(--ink-2); font-size: 17px; max-width: 64ch; }
+.meta { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12px/1.4 var(--mono); color: var(--ink-3); }
+.stamp { text-align: center; border: 2px solid currentColor; border-radius: 8px; padding: 12px 18px; transform: rotate(-2deg); min-width: 150px; }
+.stamp .lbl { font: 700 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.stamp .val { font: 400 34px/1.05 var(--serif); margin-top: 6px; }
+.stamp .sub { font: 12px/1.3 var(--mono); margin-top: 4px; opacity: .85; }
+.tone-pos { color: var(--pos); } .tone-neg { color: var(--neg); } .tone-warn { color: var(--warn); } .tone-neutral { color: var(--ink-2); } .tone-accent { color: var(--accent); }
+
+/* KPI strip */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-bottom: 1px solid var(--rule); }
+.kpi { padding: 18px 16px 16px 0; border-right: 1px solid var(--rule); }
+.kpi:last-child { border-right: 0; }
+.kpi + .kpi { padding-left: 16px; }
+.kpi .l { font: 500 11px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.kpi .v { font: 500 26px/1.15 var(--mono); margin-top: 8px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kpi .d { font: 500 12.5px/1.2 var(--mono); margin-top: 4px; }
+
+/* Summary */
+.summary { display: grid; grid-template-columns: 220px 1fr; gap: 28px; padding: 32px 0; border-bottom: 1px solid var(--rule); }
+.kicker { font: 700 11px/1.3 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.summary .body { font: 400 22px/1.45 var(--serif); }
+.summary .body p { margin: 0 0 .6em; }
+.summary .body ul { font: 16px/1.6 var(--sans); padding-left: 18px; }
+
+/* Layout */
+.grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; }
+.grid > main { min-width: 0; }  /* wide tables scroll inside .tablewrap instead of widening the page */
+nav.toc { position: sticky; top: 16px; align-self: start; padding-top: 32px; font: 13px/1.5 var(--sans); }
+nav.toc a { display: block; color: var(--ink-3); text-decoration: none; padding: 4px 0 4px 10px; border-left: 2px solid transparent; }
+nav.toc a:hover, nav.toc a.on { color: var(--ink); border-left-color: var(--accent); }
+section.block { padding: 32px 0 8px; border-bottom: 1px solid var(--rule); min-width: 0; }
+section.block:last-child { border-bottom: 0; }
+h2 { font: 400 32px/1.15 var(--serif); margin: 6px 0 14px; }
+.md h3 { font: 600 16px/1.3 var(--sans); margin: 22px 0 6px; }
+.md p, .md li { color: var(--ink-2); max-width: 74ch; }
+.md strong { color: var(--ink); }
+.md blockquote { margin: 16px 0; padding: 10px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; color: var(--ink); }
+.md code { font: 13px var(--mono); background: var(--paper-2); padding: 1px 5px; border-radius: 4px; }
+.md table, table.data { width: 100%; border-collapse: collapse; font: 13.5px/1.45 var(--sans); margin: 14px 0; }
+.tablewrap { overflow-x: auto; margin: 14px 0; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); }
+.tablewrap table { margin: 0; }
+th { text-align: left; font: 600 11px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding: 10px 12px; border-bottom: 1px solid var(--rule); background: var(--paper-2); white-space: nowrap; }
+td { padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; font: 600 11px/1 var(--mono); padding: 4px 7px; border-radius: 99px; letter-spacing: .04em; text-transform: uppercase; }
+.pill.pos { background: var(--pos-soft); color: var(--pos); } .pill.neg { background: var(--neg-soft); color: var(--neg); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.neutral { background: var(--paper-2); color: var(--ink-2); }
+.chart { position: relative; height: 300px; margin: 16px 0; padding: 12px; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; }
+.callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 14px 0; }
+.callout { background: var(--card); border: 1px solid var(--rule); border-top: 3px solid var(--ink-3); border-radius: 8px; padding: 14px 16px; }
+.callout.pos { border-top-color: var(--pos); } .callout.neg { border-top-color: var(--neg); } .callout.warn { border-top-color: var(--warn); } .callout.accent { border-top-color: var(--accent); }
+.callout .t { font: 600 14px/1.3 var(--sans); margin-bottom: 4px; }
+.callout .b { font-size: 14px; color: var(--ink-2); }
+.score { display: flex; align-items: center; gap: 12px; margin: 10px 0; font: 13px var(--sans); }
+.score .name { width: 200px; color: var(--ink-2); }
+.score .bar { flex: 1; height: 8px; border-radius: 99px; background: var(--paper-2); overflow: hidden; }
+.score .bar i { display: block; height: 100%; border-radius: 99px; }
+.score .num { min-width: 90px; max-width: 45%; text-align: right; font: 500 13px var(--mono); white-space: nowrap; }
+
+/* Sources + footer */
+.sources ol { padding-left: 20px; font: 12.5px/1.6 var(--mono); color: var(--ink-3); }
+.sources li { word-break: break-word; }
+footer { margin-top: 40px; padding-top: 18px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-3); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 820px) {
+  header.hero { grid-template-columns: 1fr; }
+  .stamp { justify-self: start; }
+  .summary, .grid { grid-template-columns: 1fr; gap: 10px; }
+  nav.toc { display: none; }
+  .kpi { border-right: 0; border-bottom: 1px solid var(--rule); padding-left: 0 !important; }
+  .score .name { width: 120px; }
+}
+@media print {
+  .tape, nav.toc, .theme-btn { display: none !important; }
+  .grid { grid-template-columns: 1fr; }
+  body { background: #fff; }
+  section.block { break-inside: avoid-page; }
+}
+</style>
+</head>
+<body>
+<div class="tape"><div class="wrap">
+  <span class="brand">earnings<b>/</b>desk</span>
+  <span id="tape-skill"></span>
+  <span id="tape-date"></span>
+  <span class="spacer"></span>
+  <button class="theme-btn" id="theme-btn" type="button" aria-label="Toggle color theme">◐ theme</button>
+</div></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="plate"><span class="tk" id="ticker"></span><span class="ex" id="exchange"></span></div>
+      <h1 id="title"></h1>
+      <div class="subtitle" id="subtitle"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div id="stamp"></div>
+  </header>
+  <div class="kpis" id="kpis"></div>
+  <div class="summary" id="summary-wrap">
+    <div class="kicker">The short version</div>
+    <div class="body md" id="summary"></div>
+  </div>
+  <div class="grid">
+    <nav class="toc" id="toc" aria-label="Sections"></nav>
+    <main id="sections"></main>
+  </div>
+  <footer>
+    <span id="footer-left"></span>
+    <span>Not investment advice. Generated by AI from public data; verify before acting.</span>
+  </footer>
+</div>
+
+<!-- The skill writes its report JSON here; render_report.py fills it in. -->
+<script type="application/json" id="report-data">{"skill": "short-report-check", "ticker": "SMCI", "company": "Super Micro Computer, Inc.", "exchange": "Nasdaq", "date": "2026-11-18", "title": "The filings back the *governance and related-party* facts, not the manipulation or Russia claims", "subtitle": "Hindenburg Research · \"Super Micro: Fresh Evidence Of Accounting Manipulation, Sibling Self-Dealing And Sanctions Evasion At This AI High Flyer\" · Aug 27, 2024 · Hindenburg disclosed a short position", "meta": ["SEC filings checked: Aug 2023 to Nov 16, 2026", "20 testable claims + 2 opinions", "Hindenburg has since wound down (Jan 2025)"], "verdict": {"label": "Allegations", "value": "Mixed", "sub": "High-severity: 0 supported, 1 partly, 4 not verifiable, 0 contradicted", "tone": "warn"}, "kpis": [{"label": "Claims tested", "value": "20", "delta": "plus 2 opinions", "tone": "neutral"}, {"label": "Supported", "value": "6", "delta": "related party, rehiring, controls", "tone": "neg"}, {"label": "Partly supported", "value": "5", "delta": "incl. export-control concerns", "tone": "warn"}, {"label": "Contradicted", "value": "0", "tone": "neutral"}, {"label": "Not verifiable", "value": "9", "delta": "incl. all Russia and revenue-manipulation claims", "tone": "neutral"}, {"label": "Serious events since", "value": "9", "delta": "auditor resignation, 3 late filings, 3 Nasdaq notices, DOJ/SEC subpoenas, indictment", "tone": "neg"}], "summary": "The filings confirm the report's checkable facts about **related parties** and **rehiring**. The $983M paid to Ablecom and Compuware matches the 10-K tables to the million, the Special Committee confirmed nine rehires, and Leadtek became a newly disclosed related party. Later events back the broader concern about **controls and governance**: EY resigned, saying it could no longer rely on management's representations, and material weaknesses persisted through June 2026. The headline **accounting manipulation** and **Russia sanctions-evasion** claims have not been established by any filing, regulator or court. There was no restatement, BDO gave a clean opinion on the FY24 statements, and the company's review found no misconduct. A March 2026 indictment of ex-director Wally Liaw concerns alleged diversion to **China**, not Russia, and is a charge, not a conviction. DOJ, SEC and BIS inquiries remain open.", "sections": [{"heading": "Allegation scorecard", "kicker": "Every claim, labeled", "tables": [{"caption": "Labels: Supported / Partly supported / Not verifiable / Opinion. Severity: High = statements or legality; Medium = governance/disclosure; Low = color.", "columns": ["#", "Allegation (short)", "Type", "Severity", "Label", "Key evidence", "Source"], "rows": [["1", "History: 2020 SEC charges, $17.5M penalty; ex-CFO Hideshima charged", "History", "Low", {"text": "Supported", "tone": "neg", "pill": true}, "SEC release confirms charges, $17.5M company penalty, Hideshima named", "SEC Rel. 2020-190"], ["2", "Improper revenue recognition resumed ~3 months after the 2020 SEC settlement", "Revenue recognition", "High", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "Rests on an April 2024 ex-employee lawsuit. Special Committee reviewed 52 deals (Apr 2023-Jun 2024) and did not disagree with any revenue conclusion; BDO clean opinion on FY24 statements; no restatement", "8-K Ex.99.1 (Special Committee), accn 0001375365-24-000044; 10-K FY24, accn 0001375365-25-000004"], ["3", "Channel stuffing via partial or defective shipments near quarter-end", "Revenue recognition", "High", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "Special Committee found no pattern of shipping incomplete products at quarter-ends (its scope only); DOJ/SEC subpoenas followed the report", "8-K Ex.99.1 (Special Committee), accn 0001375365-24-000044"], ["4", "Rehired senior staff who left in 2018 after the accounting probe, incl. a board member", "Governance", "Medium", {"text": "Supported", "tone": "neg", "pill": true}, "Special Committee: nine people who resigned after the 2017 probe were rehired; Wally Liaw was SVP and director", "8-K Ex.99.1 (Special Committee), accn 0001375365-24-000044; 10-K FY24, accn 0001375365-25-000004"], ["5", "Ex-CFO Hideshima re-engaged (report: via a related party, May 2023)", "Governance", "Medium", {"text": "Partly supported", "tone": "warn", "pill": true}, "Filings show the company itself signed a June 2024 consulting deal with its former CFO, not disclosed to EY beforehand, since terminated. The related-party hire isn't in filings", "8-K Ex.99.1 (Special Committee), accn 0001375365-24-000044"], ["6", "$983M paid to Ablecom and Compuware over three years", "Related party", "Medium", {"text": "Supported", "tone": "neg", "pill": true}, "FY21-FY23 inventory purchases: Ablecom $482.5M + Compuware $500.7M = $983.2M (disclosed)", "10-K FY23, accn 0001375365-23-000036"], ["7", "CEO Charles Liang and his wife own part of Ablecom", "Related party", "Low", {"text": "Supported", "tone": "neg", "pill": true}, "Charles Liang and Sara Liu own ~10.5% of Ablecom", "10-K FY24, accn 0001375365-25-000004"], ["8", "Circular dealings; related parties rent warehouse space to SMCI", "Related party", "Medium", {"text": "Partly supported", "tone": "warn", "pill": true}, "Filings disclose components sold to Ablecom/Compuware and bought back at cost (no revenue recognized) plus warehouse leases. Abuse is not shown", "10-K FY24, accn 0001375365-25-000004"], ["9", "~99.8% / 99.7% of Ablecom / Compuware US exports go to SMCI", "Related party", "Low", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "Customs data, not in filings. Filings show Ablecom built 93.6% of SMCI chassis in FY24", "10-K FY24, accn 0001375365-25-000004"], ["10", "James Liang owns two Taiwan component makers that supply SMCI without disclosure", "Related party", "Medium", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "Filings name only Aeon Lighting (James Liang >10%), with immaterial indirect sales. Special Committee: parties were disclosed or not required to be", "10-K FY24, accn 0001375365-25-000004; 8-K Ex.99.1 (Special Committee), accn 0001375365-24-000044"], ["11", "Bill Liang-linked Ablestnet entities resell SMCI products without disclosure", "Related party", "Medium", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "Not in filings; Special Committee conclusion as above", "8-K Ex.99.1 (Special Committee), accn 0001375365-24-000044"], ["12", "Leadtek became an undisclosed related party after Oct 2023", "Related party", "Medium", {"text": "Supported", "tone": "neg", "pill": true}, "FY24 10-K (filed after the report) now discloses Leadtek ($1.4M sales, $2.1M purchases). A material weakness cites timely identification of new related-party deals", "10-K FY24, accn 0001375365-25-000004"], ["13", "Undisclosed Lambda investment; 'unusual' ~$600M lease/sublease", "Related party / other", "Low", {"text": "Partly supported", "tone": "warn", "pill": true}, "Lambda lease and sublicense were filed as exhibits (8-K, June 21, 2024). The investment was not found in filings", "10-K FY24, accn 0001375365-25-000004; 8-K accn 0001375365-24-000026"], ["14", "Ablecom holds liquid-cooling patents not disclosed by SMCI", "Related party", "Low", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "Patent records, not SEC filings. Filings say SMCI keeps IP from Ablecom design work", "10-K FY24, accn 0001375365-25-000004"], ["15", "Exports to Russia ~tripled after the invasion, despite 'no Russia revenue'", "Export / sanctions", "High", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "10-K: last Russia revenue Feb 2022. Special Committee found no shipments to Russia in violation of rules in force. No Russia-related charges found", "10-K FY24, accn 0001375365-25-000004; 8-K Ex.99.1 (Special Committee), accn 0001375365-24-000044"], ["16", "Russia-bound flows via Turkish and Hong Kong shells, later sanctioned", "Export / sanctions", "High", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "Trade records, not in filings. No regulator finding against SMCI on these flows", "8-K Ex.99.1 (Special Committee), accn 0001375365-24-000044"], ["17", "~$196M sold since 2020 to a China JV with Fiberhome", "Export / related party", "Medium", {"text": "Partly supported", "tone": "warn", "pill": true}, "Sales to the 30%-owned China 'Corporate Venture' FY21-FY23 = $196.4M (matches). Filings don't name the partner", "10-K FY23, accn 0001375365-23-000036; 10-K FY24, accn 0001375365-25-000004"], ["18", "Governance and internal-control problems have recurred", "Controls / auditor", "Medium", {"text": "Supported", "tone": "neg", "pill": true}, "EY resigned saying it could no longer rely on management and Audit Committee representations; material weaknesses at June 30 2024, 2025 and 2026", "8-K Item 4.01, accn 0001375365-24-000036; 10-K FY24, accn 0001375365-25-000004; 10-K FY26, accn 0001375365-26-000022"], ["19", "Export-control compliance is weak; products reach restricted destinations", "Export / sanctions", "High", {"text": "Partly supported", "tone": "warn", "pill": true}, "Mar 2026 SDNY indictment of ex-director Liaw and two others alleges ~$2.5B diversion to China (charges, not convictions; SMCI not a defendant). Company probe found no senior-management knowledge", "10-K FY26, accn 0001375365-26-000022; 8-K accn 0001375365-26-000011"], ["20", "Customers (CoreWeave, Tesla, xAI) shifting to Dell; reliability problems", "Competition", "Low", {"text": "Not verifiable", "tone": "neutral", "pill": true}, "Channel checks and interviews; not settled by filings", "n/a"], ["O1", "'Serial recidivist' with accounting, governance and compliance issues", "Characterization", "n/a", {"text": "Opinion", "tone": "neutral", "pill": true}, "Not tested", "n/a"], ["O2", "Dell is better positioned for large enterprise builds (citing Jensen Huang)", "Competition", "n/a", {"text": "Opinion", "tone": "neutral", "pill": true}, "Not tested", "n/a"]]}], "after": "Severity-weighted (High 3, Medium 2, Low 1), testable claims only: Supported 10 pts, Partly 11 pts, Not verifiable 19 pts, Contradicted 0 pts, out of 40."}, {"heading": "What happened since the report", "kicker": "Events", "tables": [{"columns": ["Date", "Filing / event", "What it says", "Source"], "rows": [["2024-05-09", "8-K 3.01 (before report)", "Nasdaq audit-committee composition notice, cured the same day", "accn 0001375365-24-000023"], ["2024-08-27", "Report published", "Hindenburg short report; Hindenburg says it is short", "hindenburgresearch.com/smci"], ["2024-08-30", {"text": "NT 10-K", "tone": "warn", "pill": true}, "10-K late; Board review of internal controls ongoing; no material change to results expected", "accn 0001375365-24-000031"], ["2024-09-20", {"text": "8-K 3.01", "tone": "warn", "pill": true}, "Nasdaq notice for the late 10-K", "accn 0001375365-24-000033"], ["2024-10-30", {"text": "8-K 4.01 auditor resigns", "tone": "neg", "pill": true}, "EY resigns: unable to rely on management's and Audit Committee's representations; company disagrees and expects no restatement", "accn 0001375365-24-000036"], ["2024-11-13", {"text": "NT 10-Q", "tone": "warn", "pill": true}, "Q1 FY25 10-Q late", "accn 0001375365-24-000039"], ["2024-11-18", "8-K 4.01", "BDO appointed; Nasdaq compliance plan submitted", "accn 0001375365-24-000040"], ["2024-11-20 / 12-06", {"text": "8-K 3.01", "tone": "warn", "pill": true}, "More Nasdaq listing notices", "accn 0001375365-24-000042; 0001375365-24-000045"], ["2024-12-02", {"text": "Special Committee", "tone": "pos", "pill": true}, "No evidence of misconduct by management or Board; no restatement expected; new CFO, CAO, CCO and GC recommended", "accn 0001375365-24-000044"], ["Late 2024", "DOJ and SEC subpoenas", "Document requests following the short report; no charges as of the Aug 2025 10-K", "accn 0001375365-25-000004; 0001375365-25-000027"], ["2025-02-11", "NT 10-Q", "Q2 FY25 10-Q late", "accn 0001375365-25-000002"], ["2025-02-25", {"text": "10-K FY24 filed", "tone": "warn", "pill": true}, "No restatement; BDO clean opinion on statements, adverse on internal controls (5 material weaknesses)", "accn 0001375365-25-000004"], ["2025-02-26", "8-K 3.01", "Nasdaq: back in compliance, matter closed", "accn 0001375365-25-000007"], ["2026-03-19/20", {"text": "Indictment (SDNY)", "tone": "neg", "pill": true}, "Director/SVP Wally Liaw, a Taiwan sales manager and a contractor charged with export-control conspiracy (alleged China diversion). SMCI not a defendant; Liaw resigns", "accn 0001375365-26-000011"], ["2026-08-31", "10-K FY26", "Material weakness remains; SEC, SDNY grand jury, DOJ and BIS inquiries; company's own probe found no senior-management knowledge", "accn 0001375365-26-000022"], ["2026-10-15", "8-K 5.02", "Mark Long replaces David Weigand as CFO", "accn 0001375365-26-000024"]]}], "after": "The events scan (evidence.py) found no Item 4.02 non-reliance notice and no 10-K/A or 10-Q/A in the window it covered (Feb 2024 to Nov 2026)."}, {"heading": "The claims that matter most", "kicker": "High-severity", "callouts": [{"title": "#2-3 Revenue manipulation and channel stuffing: not verifiable", "tone": "neutral", "body": "**For:** the 2020 SEC case shows a history (SEC Rel. 2020-190). EY raised concerns about governance and internal control in July 2024 and resigned in October (accn 0001375365-24-000036). **Against:** the Special Committee \"did not disagree with any of the Company's revenue recognition conclusions\" across 52 deals (accn 0001375365-24-000044). BDO's opinion says the FY24 statements \"present fairly, in all material respects\", and nothing was restated (accn 0001375365-25-000004). The committee is the company's own review and its scope was limited. DOJ and SEC subpoenas are disclosed with no charges (accn 0001375365-25-000027)."}, {"title": "#15-16 Russia exports and shell companies: not verifiable", "tone": "neutral", "body": "The 10-K says the company \"had last recorded revenue from Russia in February 2022\" (accn 0001375365-25-000004). That statement and the report's third-party trade data can both be true. The Special Committee \"did not identify products that were sold to Russian customers or shipped to Russia in violation of\" sanctions in force (accn 0001375365-24-000044). No regulator action on Russia appears in filings through the FY26 10-K."}, {"title": "#19 Export-control compliance: partly supported", "tone": "warn", "body": "In March 2026, SDNY indicted Wally Liaw (SVP and director, one of the 2018 departures later rehired), a Taiwan sales manager and a contractor. They are charged with an alleged export-control conspiracy routing servers to China via brokers (8-K accn 0001375365-26-000011; FY26 10-K accn 0001375365-26-000022). Press reports put the alleged diversion at ~$2.5B (The Register, 2026-03-20). The company is not a defendant. Its Munger Tolles/AlixPartners probe found no evidence that current senior management knew. These are charges, not findings of guilt, and they concern China, not the Russia flows in the report."}, {"title": "#18 Controls and governance: supported (medium)", "tone": "neg", "body": "EY: \"we are resigning due to information that has recently come to our attention which has led us to no longer be able to rely on management's and the Audit Committee's representations\" (accn 0001375365-24-000036). The FY24 10-K lists five material weaknesses, including timely identification of new related-party transactions. A weakness was still open at June 30, 2026 (accn 0001375365-26-000022)."}]}, {"heading": "Opinions and untestable claims", "kicker": "What filings can't settle", "body": "- **Russia flows (#15-16) and undisclosed sibling-owned suppliers or resellers (#10-11):** would be settled by a BIS/OFAC/DOJ finding, or by a 10-K disclosure naming these entities.\n- **Ex-employee revenue-recognition allegations (#2-3):** would be settled by a ruling in the April 2024 lawsuit, an SEC enforcement outcome, or a restatement.\n- **Customs export shares (#9), patents (#14), customer losses and reliability (#20):** need trade, patent or customer data; out of scope for filings.\n- **Opinions (O1-O2):** recorded only; not tested."}, {"heading": "Market reaction", "kicker": "Stock", "body": "SMCI closed at $56.25 on Aug 26, 2024 (split-adjusted). It fell 2.6% on the report day (Aug 27) and a further 19.0% on Aug 28, when the company said it would delay its 10-K. That is -21.2% over two days (market.py reaction, close-to-close). Most of the drop came on the company's own late-filing news rather than the report itself."}, {"heading": "What to watch", "kicker": "Open items", "body": "- Outcome of the SEC subpoena and SDNY grand-jury subpoena, DOJ and BIS (OEE) inquiries (FY26 10-K).\n- The criminal case against Liaw, Chang and Sun (allegations unproven).\n- Remediation of the remaining material weakness in the FY27 10-K.\n- Any Item 4.02 notice or amended filing; none so far.\n- Related-party note changes (new entities, Leadtek amounts) under new CFO Mark Long (accn 0001375365-26-000024)."}], "sources": [{"label": "Hindenburg Research, 'Super Micro: Fresh Evidence Of Accounting Manipulation, Sibling Self-Dealing And Sanctions Evasion At This AI High Flyer', Aug 27, 2024", "url": "https://hindenburgresearch.com/smci/"}, {"label": "SEC Press Release 2020-190, Aug 25, 2020", "url": "https://www.sec.gov/news/press-release/2020-190"}, {"label": "10-K FY2023 (accn 0001375365-23-000036)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536523000036/smci-20230630.htm"}, {"label": "10-K FY2024, filed 2025-02-25 (accn 0001375365-25-000004)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536525000004/smci-20240630.htm"}, {"label": "10-K FY2025 (accn 0001375365-25-000027)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536525000027/smci-20250630.htm"}, {"label": "10-K FY2026 (accn 0001375365-26-000022)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000022/smci-20260630.htm"}, {"label": "8-K 4.01 EY resignation + Ex.16.1 (accn 0001375365-24-000036)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536524000036/smci-20241024.htm"}, {"label": "NT 10-K (accn 0001375365-24-000031)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536524000031/smci-form12bx25nt10xkx2024.htm"}, {"label": "8-K 3.01 (accn 0001375365-24-000033)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536524000033/smci-20240917.htm"}, {"label": "8-K 4.01 BDO (accn 0001375365-24-000040)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536524000040/smci-20241118.htm"}, {"label": "8-K Special Committee results (accn 0001375365-24-000044)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536524000044/smci-20241127.htm"}, "8-K 3.01 (accn 0001375365-24-000042, 0001375365-24-000045, 0001375365-24-000023); NT 10-Q (accn 0001375365-24-000039, 0001375365-25-000002)", {"label": "8-K 3.01 compliance regained (accn 0001375365-25-000007)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536525000007/smci-20250221.htm"}, {"label": "8-K indictment statement and Liaw resignation (accn 0001375365-26-000011)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000011/smci-20260320.htm"}, {"label": "8-K CFO transition (accn 0001375365-26-000024)", "url": "https://www.sec.gov/Archives/edgar/data/1375365/000137536526000024/smci-20261014.htm"}, "8-K June 21, 2024 Lambda lease/sublicense exhibits (accn 0001375365-24-000026)", {"label": "The Register, 2026-03-20, on the SDNY indictment", "url": "https://www.theregister.com/2026/03/20/supermicro_nvidia_gpu_charges/"}, "Price move: earnings-desk market.py reaction SMCI --date 2024-08-27, retrieved 2026-11-18"]}</script>
+<script>
+(function () {
+  "use strict";
+  var data = JSON.parse(document.getElementById("report-data").textContent);
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); };
+  var md = function (s) {
+    if (!s) return "";
+    var html = window.marked ? marked.parse(String(s)) : "<p>" + esc(s) + "</p>";
+    return window.DOMPurify ? DOMPurify.sanitize(html) : html;
+  };
+  var TONES = ["pos", "neg", "warn", "neutral", "accent"];
+  var tone = function (t) { return TONES.indexOf(t) >= 0 ? t : "neutral"; };
+
+  // Theme toggle (remembered per viewer, safe if storage is blocked)
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem("ed-theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+  $("theme-btn").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") ? root.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = dark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("ed-theme", next); } catch (e) {}
+    drawCharts();
+  });
+
+  // Masthead
+  document.title = data.title ? (data.ticker ? data.ticker + " · " : "") + String(data.title).replace(/\*(.+?)\*/g, "$1") : document.title;
+  $("tape-skill").textContent = data.skill ? "/" + data.skill : "";
+  $("tape-date").textContent = data.date || "";
+  $("ticker").textContent = data.ticker || "—";
+  $("exchange").textContent = [data.company, data.exchange].filter(Boolean).join(" · ");
+  $("title").innerHTML = esc(data.title || "Research report").replace(/\*(.+?)\*/g, "<em>$1</em>");
+  $("subtitle").textContent = data.subtitle || "";
+  $("meta").innerHTML = (data.meta || []).map(function (m) { return "<span>" + esc(m) + "</span>"; }).join("");
+  $("footer-left").textContent = "earnings-desk · " + (data.skill || "report") + (data.date ? " · " + data.date : "");
+
+  if (data.verdict) {
+    var v = data.verdict;
+    $("stamp").innerHTML = '<div class="stamp tone-' + tone(v.tone) + '"><div class="lbl">' + esc(v.label || "Verdict") + '</div><div class="val">' + esc(v.value) + "</div>" + (v.sub ? '<div class="sub">' + esc(v.sub) + "</div>" : "") + "</div>";
+  }
+
+  $("kpis").innerHTML = (data.kpis || []).map(function (k) {
+    return '<div class="kpi"><div class="l">' + esc(k.label) + '</div><div class="v">' + esc(k.value) + "</div>" + (k.delta ? '<div class="d tone-' + tone(k.tone) + '">' + esc(k.delta) + "</div>" : "") + "</div>";
+  }).join("");
+  if (!(data.kpis || []).length) $("kpis").style.display = "none";
+
+  if (data.summary) $("summary").innerHTML = md(data.summary); else $("summary-wrap").style.display = "none";
+
+  // Sections
+  var charts = [];
+  function renderTable(t) {
+    var cols = t.columns || [];
+    var numeric = cols.map(function (_, i) { return (t.rows || []).every(function (r) { var c = r[i]; c = (c && typeof c === "object") ? c.text : c; return c == null || c === "" || /^[\s$€£¥+\-–(]*[\d.,]+\s*[%xX)BMKbmk]*\s*(bps)?$/.test(String(c)); }); });
+    var head = "<tr>" + cols.map(function (c, i) { return '<th class="' + (numeric[i] ? "num" : "") + '">' + esc(c) + "</th>"; }).join("") + "</tr>";
+    var body = (t.rows || []).map(function (r) {
+      return "<tr>" + r.map(function (c, i) {
+        var cls = numeric[i] ? "num" : "";
+        if (c && typeof c === "object") {
+          var inner = c.pill ? '<span class="pill ' + tone(c.tone) + '">' + esc(c.text) + "</span>" : '<span class="tone-' + tone(c.tone) + '">' + esc(c.text) + "</span>";
+          return '<td class="' + cls + '">' + inner + "</td>";
+        }
+        return '<td class="' + cls + '">' + esc(c) + "</td>";
+      }).join("") + "</tr>";
+    }).join("");
+    return (t.caption ? '<div class="kicker" style="margin-top:18px">' + esc(t.caption) + "</div>" : "") + '<div class="tablewrap"><table class="data"><thead>' + head + "</thead><tbody>" + body + "</tbody></table></div>";
+  }
+  function renderScores(list) {
+    return list.map(function (s) {
+      var pct = Math.max(0, Math.min(100, Number(s.pct) || 0));
+      return '<div class="score"><span class="name">' + esc(s.name) + '</span><span class="bar"><i style="width:' + pct + "%;background:var(--" + tone(s.tone) + ', var(--ink-3))"></i></span><span class="num tone-' + tone(s.tone) + '">' + esc(s.value) + "</span></div>";
+    }).join("");
+  }
+  function renderCallouts(list) {
+    return '<div class="callouts">' + list.map(function (c) { return '<div class="callout ' + tone(c.tone) + '"><div class="t">' + esc(c.title) + '</div><div class="b">' + md(c.body) + "</div></div>"; }).join("") + "</div>";
+  }
+
+  var html = "", toc = "";
+  (data.sections || []).forEach(function (s, i) {
+    var id = "s" + i;
+    toc += '<a href="#' + id + '">' + esc(s.heading) + "</a>";
+    html += '<section class="block" id="' + id + '">' + (s.kicker ? '<div class="kicker">' + esc(s.kicker) + "</div>" : "") + "<h2>" + esc(s.heading) + "</h2>";
+    if (s.callouts) html += renderCallouts(s.callouts);
+    if (s.body) html += '<div class="md">' + md(s.body) + "</div>";
+    if (s.scores) html += renderScores(s.scores);
+    (s.tables || (s.table ? [s.table] : [])).forEach(function (t) { html += renderTable(t); });
+    (s.charts || (s.chart ? [s.chart] : [])).forEach(function (c) { var cid = "c" + charts.length; charts.push({ id: cid, spec: c }); html += '<div class="chart"><canvas id="' + cid + '" aria-label="' + esc(c.title || "chart") + '"></canvas></div>'; });
+    if (s.after) html += '<div class="md">' + md(s.after) + "</div>";
+    html += "</section>";
+  });
+  if ((data.sources || []).length) {
+    toc += '<a href="#sources">Sources</a>';
+    html += '<section class="block sources" id="sources"><div class="kicker">Every number traces back here</div><h2>Sources</h2><ol>' + data.sources.map(function (s) {
+      var label = typeof s === "string" ? s : (s.label || s.url);
+      var url = typeof s === "string" ? (/^https?:/.test(s) ? s : null) : s.url;
+      return "<li>" + (url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + "</a>" : esc(label)) + "</li>";
+    }).join("") + "</ol></section>";
+  }
+  $("sections").innerHTML = html;
+  $("toc").innerHTML = toc;
+
+  // Highlight the current section in the TOC
+  if ("IntersectionObserver" in window) {
+    var links = Array.prototype.slice.call(document.querySelectorAll("nav.toc a"));
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) links.forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id); }); });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    document.querySelectorAll("section.block").forEach(function (s) { io.observe(s); });
+  }
+
+  // Charts: spec = {type, title, labels, datasets:[{label, data, type?}], yFormat?: "pct"|"usd"|"x"}
+  var live = [];
+  function cssVar(n) { return getComputedStyle(root).getPropertyValue(n).trim(); }
+  function fmt(v, f) { if (f === "pct") return v + "%"; if (f === "usd") return "$" + v; if (f === "x") return v + "x"; return v; }
+  function drawCharts() {
+    if (!window.Chart) return;
+    live.forEach(function (c) { c.destroy(); }); live = [];
+    var palette = ["--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5"].map(cssVar);
+    Chart.defaults.font.family = cssVar("--sans");
+    Chart.defaults.color = cssVar("--ink-3");
+    charts.forEach(function (c) {
+      var s = c.spec, type = s.type || "bar";
+      var ds = (s.datasets || []).map(function (d, i) {
+        var col = palette[i % palette.length];
+        return Object.assign({ backgroundColor: (d.type || type) === "line" ? col : col + "cc", borderColor: col, borderWidth: (d.type || type) === "line" ? 2.5 : 0, borderRadius: 3, pointRadius: 2.5, tension: 0.25 }, d);
+      });
+      live.push(new Chart(document.getElementById(c.id), {
+        type: type,
+        data: { labels: s.labels || [], datasets: ds },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { title: { display: !!s.title, text: s.title, align: "start", color: cssVar("--ink"), font: { size: 13, weight: "600" } }, legend: { display: ds.length > 1, position: "bottom", labels: { boxWidth: 10, boxHeight: 10 } } },
+          scales: type === "pie" || type === "doughnut" ? {} : { x: { grid: { display: false } }, y: { grid: { color: cssVar("--rule") }, ticks: { callback: function (v) { return fmt(v, s.yFormat); } } } }
+        }
+      }));
+    });
+  }
+  drawCharts();
+  if (window.matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawCharts);
+})();
+</script>
+</body>
+</html>

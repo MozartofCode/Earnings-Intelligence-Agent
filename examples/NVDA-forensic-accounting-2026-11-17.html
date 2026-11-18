@@ -93,7 +93,8 @@ h1 em { color: var(--accent); }
 .summary .body ul { font: 16px/1.6 var(--sans); padding-left: 18px; }
 
 /* Layout */
-.grid { display: grid; grid-template-columns: 220px 1fr; gap: 28px; }
+.grid { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 28px; }
+.grid > main { min-width: 0; }  /* wide tables scroll inside .tablewrap instead of widening the page */
 nav.toc { position: sticky; top: 16px; align-self: start; padding-top: 32px; font: 13px/1.5 var(--sans); }
 nav.toc a { display: block; color: var(--ink-3); text-decoration: none; padding: 4px 0 4px 10px; border-left: 2px solid transparent; }
 nav.toc a:hover, nav.toc a.on { color: var(--ink); border-left-color: var(--accent); }

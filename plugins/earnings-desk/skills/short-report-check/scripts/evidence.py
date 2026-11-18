@@ -9,7 +9,8 @@ Commands
       n most recent filings of each form. Returns, per term, cited snippets and a
       mention count per filing so you can see whether disclosure grew or shrank.
   events TICKER [--since 2024-01-01] [--limit 400]
-      Lists filing events that matter when testing allegations: auditor changes
+      Lists filing events that matter when testing allegations (8.01/7.01 included,
+      since company responses often appear there): auditor changes
       (8-K 4.01), non-reliance/restatements (4.02), officer/director changes (5.02),
       material agreements (1.01/1.02), impairments (2.06), listing notices (3.01),
       late filings (NT 10-K/10-Q) and amended reports (10-K/A, 10-Q/A).
@@ -34,7 +35,7 @@ ITEMS = {
     "2.06": "material impairment", "3.01": "delisting / listing-standard notice",
     "4.01": "change in auditor", "4.02": "non-reliance on prior financials (restatement)",
     "5.02": "director or officer departure / appointment", "5.05": "code-of-ethics change or waiver",
-    "8.01": "other events",
+    "8.01": "other events (company responses, committee findings and announcements often appear here)",
 }
 
 
@@ -70,7 +71,7 @@ def search(cik, terms, forms, n, width, max_hits):
             for m in ms[:max(1, max_hits // max(len(filings), 1) + 1)]:
                 if len(hits) >= max_hits:
                     break
-                hits.append({"form": row["form"], "filed": row["filed"], "period": row["period"], "accession": row["accession"],
+                hits.append({"term": term, "form": row["form"], "filed": row["filed"], "period": row["period"], "accession": row["accession"],
                              "url": row["url"], "saved_to": path, "snippet": snippet(text, m.start(), m.end(), width)})
         total = sum(c["mentions"] for c in counts)
         out[term] = {"total_mentions": total, "per_filing": counts, "hits": hits,
@@ -86,9 +87,10 @@ def events(cik, since, limit):
         f = r["form"]
         if f in ("8-K", "8-K/A"):
             items = [i.strip() for i in (r.get("items") or "").split(",") if i.strip()]
-            flagged = [i for i in items if i in ITEMS and i != "8.01"]
+            flagged = [i for i in items if i in ITEMS or i == "7.01"]
             if flagged:
-                ev.append({"filed": r["filed"], "form": f, "items": flagged, "meaning": [ITEMS[i] for i in flagged], "accession": r["accession"], "url": r["url"]})
+                ev.append({"filed": r["filed"], "form": f, "items": flagged, "meaning": [ITEMS.get(i, "Reg FD disclosure (often a company response or investor update)") for i in flagged],
+                           "accession": r["accession"], "url": r["url"]})
         elif f.startswith("NT ") or f in ("10-K/A", "10-Q/A", "20-F/A"):
             ev.append({"filed": r["filed"], "form": f, "items": [], "meaning": ["late filing notice" if f.startswith("NT ") else "amended periodic report"],
                        "accession": r["accession"], "url": r["url"]})
@@ -97,7 +99,7 @@ def events(cik, since, limit):
             "filings_span": [rows[-1]["filed"], rows[0]["filed"]] if rows else None,
             "window_complete": len(rows) < limit,
             "events": ev, "serious_events": serious,
-            "note": "No 4.01/4.02/3.01 or NT filings in the window is itself a finding; state the window you checked."}
+            "note": "No 4.01/4.02/3.01 or NT filings in the window is itself a finding; state the window you checked. If window_complete is false, raise --limit."}
 
 
 def main():
@@ -107,7 +109,7 @@ def main():
     s.add_argument("--term", action="append", default=[], help="one literal phrase (repeatable; may contain commas)")
     s.add_argument("--forms", default="10-K,10-Q"); s.add_argument("--n", type=int, default=3)
     s.add_argument("--context", type=int, default=280); s.add_argument("--max-hits", type=int, default=6)
-    e = sp.add_parser("events"); e.add_argument("ticker"); e.add_argument("--since", default="2023-01-01"); e.add_argument("--limit", type=int, default=400)
+    e = sp.add_parser("events"); e.add_argument("ticker"); e.add_argument("--since", default="2023-01-01"); e.add_argument("--limit", type=int, default=1500)
     a = p.parse_args()
     if not a.cmd:
         p.print_help(); return

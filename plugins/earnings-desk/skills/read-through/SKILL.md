@@ -59,7 +59,7 @@ Every earnings report also tells you something about other companies. A hypersca
    - Run `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER > .earnings-desk/work/TICKER-er0.json`. Check `filing.filed` to confirm the print is from this season.
    - Extract revenue, EPS (state the basis), the guide, and the guide change against the prior guide.
    - Get consensus from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py estimates TICKER` / `surprises TICKER`, or from a cited web search. Use pre-print figures.
-   - Get the reaction from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py reactions TICKER --n 1`. `move_pct` covers both pre-market and after-close releases; use `pre_market_move_pct` / `after_close_move_pct` to isolate the session once you know the release time.
+   - Get the reaction from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py reactions TICKER --n 1`. `move_pct` covers both pre-market and after-close releases; use `event_day_move_pct` / `next_day_move_pct` to isolate the session once you know the release time.
 3. **Build the scoreboard.** Tally beats, misses, raises and cuts. Extract 3-5 common themes (pricing, volumes, inventory, FX, tariffs, AI demand, consumer health) and record which companies said what, with citations.
 4. **Flag outliers and preview the rest.** An outlier is, for example, the one company that missed when everyone else beat. Decide whether it is company-specific or an early warning, and give the evidence. Then list the names still to report and what the season so far implies for each.
 

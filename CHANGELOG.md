@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 — 2026-11-18
+- **New skill: `short-report-check`.** It fact-checks a short-seller report against the company's SEC filings. Each allegation is split out, tested and labeled Supported / Partly supported / Contradicted / Not verifiable / Opinion, with citations and the events since the report. It is neutral by design.
+- **New script: `evidence.py`.** It searches terms across several filings with per-filing mention counts, and scans for red-flag events (auditor changes, restatements, listing notices, late filings, executive departures and company responses).
+- **Tests:** a new eval case (a synthetic Apple short report with known answers). Also a real end-to-end example on Hindenburg's 2024 Super Micro report.
+- **Fixes:**
+  - fetching an 8-K by accession keeps its main document
+  - NT late-filing notices are readable
+  - reaction fields renamed to `event_day_move_pct` / `next_day_move_pct`
+  - report template no longer scrolls sideways with wide tables
+- **Updated:** 21 skills in all docs, the banner and the demo video.
+
 ## 1.1.0 — 2026-11-18
 Hardened by real end-to-end runs: a blind A/B against plain Claude (earnings-desk won 4 of 5, tied 1, lost 0) and a full 8-agent deep dive on MSFT. Over 40 issues found and fixed.
 - **Proof:** eval suite for `claude plugin eval` plus blind A/B results (`plugins/earnings-desk/evals/`).
