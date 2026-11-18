@@ -40,7 +40,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta
 
-UA = os.environ.get("SEC_USER_AGENT") or "earnings-desk/1.0 (open-source research tool; https://github.com/MozartofCode/Earnings-Intelligence-Agent)"
+UA = os.environ.get("SEC_USER_AGENT") or os.environ.get("EVAL_SEC_USER_AGENT") or "earnings-desk/1.0 (open-source research tool; https://github.com/MozartofCode/Earnings-Intelligence-Agent)"
 CACHE_DIR = os.path.join(os.getcwd(), ".earnings-desk", "cache")
 _last_call = [0.0]
 

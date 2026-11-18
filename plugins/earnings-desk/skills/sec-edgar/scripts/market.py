@@ -261,7 +261,7 @@ def calendar(ticker):
 
 def status():
     out = {k: bool(v) for k, v in KEYS.items()}
-    out["SEC_USER_AGENT"] = bool(os.environ.get("SEC_USER_AGENT"))
+    out["SEC_USER_AGENT"] = bool(os.environ.get("SEC_USER_AGENT") or os.environ.get("EVAL_SEC_USER_AGENT"))
     out["note"] = "Everything works with no keys; keys add consensus estimates, surprises, calendars and sturdier quotes."
     return out
 
