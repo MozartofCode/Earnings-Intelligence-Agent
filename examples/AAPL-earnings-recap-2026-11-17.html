@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAPL · A real top line, a borrowed EPS beat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* earnings-desk report template: one look for every skill's output. */
+:root {
+  --paper: #f4f1ea;
+  --paper-2: #ebe6db;
+  --card: #fbfaf6;
+  --ink: #16140f;
+  --ink-2: #4a463c;
+  --ink-3: #847d6d;
+  --rule: #d8d1c1;
+  --accent: #b5501c;
+  --accent-soft: #f1dccd;
+  --pos: #1f7a4a;
+  --pos-soft: #dbeee2;
+  --neg: #b42a2a;
+  --neg-soft: #f5dcd8;
+  --warn: #9a6a00;
+  --warn-soft: #f3e7c4;
+  --chart-1: #b5501c; --chart-2: #2f5d8a; --chart-3: #1f7a4a; --chart-4: #8a5a9e; --chart-5: #847d6d;
+  --serif: "Instrument Serif", Georgia, serif;
+  --sans: "Inter Tight", system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1210; --paper-2: #151a16; --card: #161b17; --ink: #ece8dc; --ink-2: #b9b4a5; --ink-3: #7d796d;
+    --rule: #28302a; --accent: #f08a4b; --accent-soft: #3a2416; --pos: #4fc283; --pos-soft: #14301f;
+    --neg: #f06a62; --neg-soft: #3a1714; --warn: #e2b23c; --warn-soft: #33290f;
+    --chart-1: #f08a4b; --chart-2: #6fa3d6; --chart-3: #4fc283; --chart-4: #c294d6; --chart-5: #7d796d;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1210; --paper-2: #151a16; --card: #161b17; --ink: #ece8dc; --ink-2: #b9b4a5; --ink-3: #7d796d;
+  --rule: #28302a; --accent: #f08a4b; --accent-soft: #3a2416; --pos: #4fc283; --pos-soft: #14301f;
+  --neg: #f06a62; --neg-soft: #3a1714; --warn: #e2b23c; --warn-soft: #33290f;
+  --chart-1: #f08a4b; --chart-2: #6fa3d6; --chart-3: #4fc283; --chart-4: #c294d6; --chart-5: #7d796d;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.6 var(--sans); }
+a { color: var(--accent); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px 80px; }
+
+/* Masthead */
+.tape { border-bottom: 1px solid var(--rule); font: 500 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.tape .wrap { display: flex; gap: 18px; align-items: center; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
+.tape .brand { color: var(--ink); font-weight: 700; }
+.tape .brand b { color: var(--accent); }
+.tape .spacer { flex: 1; }
+.theme-btn { font: inherit; color: var(--ink-2); background: none; border: 1px solid var(--rule); border-radius: 99px; padding: 6px 12px; cursor: pointer; }
+.theme-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+
+header.hero { padding: 44px 0 28px; border-bottom: 2px solid var(--ink); display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
+.plate { display: inline-flex; align-items: center; gap: 10px; font: 700 13px/1 var(--mono); letter-spacing: .06em; margin-bottom: 18px; }
+.plate .tk { background: var(--ink); color: var(--paper); padding: 6px 9px; border-radius: 4px; }
+.plate .ex { color: var(--ink-3); }
+h1 { font: 400 clamp(38px, 6vw, 64px)/1.02 var(--serif); margin: 0; letter-spacing: -.01em; }
+h1 em { color: var(--accent); }
+.subtitle { margin-top: 12px; color: var(--ink-2); font-size: 17px; max-width: 64ch; }
+.meta { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12px/1.4 var(--mono); color: var(--ink-3); }
+.stamp { text-align: center; border: 2px solid currentColor; border-radius: 8px; padding: 12px 18px; transform: rotate(-2deg); min-width: 150px; }
+.stamp .lbl { font: 700 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; opacity: .8; }
+.stamp .val { font: 400 34px/1.05 var(--serif); margin-top: 6px; }
+.stamp .sub { font: 12px/1.3 var(--mono); margin-top: 4px; opacity: .85; }
+.tone-pos { color: var(--pos); } .tone-neg { color: var(--neg); } .tone-warn { color: var(--warn); } .tone-neutral { color: var(--ink-2); } .tone-accent { color: var(--accent); }
+
+/* KPI strip */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); border-bottom: 1px solid var(--rule); }
+.kpi { padding: 18px 16px 16px 0; border-right: 1px solid var(--rule); }
+.kpi:last-child { border-right: 0; }
+.kpi + .kpi { padding-left: 16px; }
+.kpi .l { font: 500 11px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.kpi .v { font: 500 26px/1.15 var(--mono); margin-top: 8px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.kpi .d { font: 500 12.5px/1.2 var(--mono); margin-top: 4px; }
+
+/* Summary */
+.summary { display: grid; grid-template-columns: 220px 1fr; gap: 28px; padding: 32px 0; border-bottom: 1px solid var(--rule); }
+.kicker { font: 700 11px/1.3 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.summary .body { font: 400 22px/1.45 var(--serif); }
+.summary .body p { margin: 0 0 .6em; }
+.summary .body ul { font: 16px/1.6 var(--sans); padding-left: 18px; }
+
+/* Layout */
+.grid { display: grid; grid-template-columns: 220px 1fr; gap: 28px; }
+nav.toc { position: sticky; top: 16px; align-self: start; padding-top: 32px; font: 13px/1.5 var(--sans); }
+nav.toc a { display: block; color: var(--ink-3); text-decoration: none; padding: 4px 0 4px 10px; border-left: 2px solid transparent; }
+nav.toc a:hover, nav.toc a.on { color: var(--ink); border-left-color: var(--accent); }
+section.block { padding: 32px 0 8px; border-bottom: 1px solid var(--rule); min-width: 0; }
+section.block:last-child { border-bottom: 0; }
+h2 { font: 400 32px/1.15 var(--serif); margin: 6px 0 14px; }
+.md h3 { font: 600 16px/1.3 var(--sans); margin: 22px 0 6px; }
+.md p, .md li { color: var(--ink-2); max-width: 74ch; }
+.md strong { color: var(--ink); }
+.md blockquote { margin: 16px 0; padding: 10px 16px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; color: var(--ink); }
+.md code { font: 13px var(--mono); background: var(--paper-2); padding: 1px 5px; border-radius: 4px; }
+.md table, table.data { width: 100%; border-collapse: collapse; font: 13.5px/1.45 var(--sans); margin: 14px 0; }
+.tablewrap { overflow-x: auto; margin: 14px 0; border: 1px solid var(--rule); border-radius: 8px; background: var(--card); }
+.tablewrap table { margin: 0; }
+th { text-align: left; font: 600 11px/1.3 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); padding: 10px 12px; border-bottom: 1px solid var(--rule); background: var(--paper-2); white-space: nowrap; }
+td { padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; font: 600 11px/1 var(--mono); padding: 4px 7px; border-radius: 99px; letter-spacing: .04em; text-transform: uppercase; }
+.pill.pos { background: var(--pos-soft); color: var(--pos); } .pill.neg { background: var(--neg-soft); color: var(--neg); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.neutral { background: var(--paper-2); color: var(--ink-2); }
+.chart { position: relative; height: 300px; margin: 16px 0; padding: 12px; background: var(--card); border: 1px solid var(--rule); border-radius: 8px; }
+.callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 14px 0; }
+.callout { background: var(--card); border: 1px solid var(--rule); border-top: 3px solid var(--ink-3); border-radius: 8px; padding: 14px 16px; }
+.callout.pos { border-top-color: var(--pos); } .callout.neg { border-top-color: var(--neg); } .callout.warn { border-top-color: var(--warn); } .callout.accent { border-top-color: var(--accent); }
+.callout .t { font: 600 14px/1.3 var(--sans); margin-bottom: 4px; }
+.callout .b { font-size: 14px; color: var(--ink-2); }
+.score { display: flex; align-items: center; gap: 12px; margin: 10px 0; font: 13px var(--sans); }
+.score .name { width: 200px; color: var(--ink-2); }
+.score .bar { flex: 1; height: 8px; border-radius: 99px; background: var(--paper-2); overflow: hidden; }
+.score .bar i { display: block; height: 100%; border-radius: 99px; }
+.score .num { width: 90px; text-align: right; font: 500 13px var(--mono); }
+
+/* Sources + footer */
+.sources ol { padding-left: 20px; font: 12.5px/1.6 var(--mono); color: var(--ink-3); }
+.sources li { word-break: break-word; }
+footer { margin-top: 40px; padding-top: 18px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-3); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 820px) {
+  header.hero { grid-template-columns: 1fr; }
+  .stamp { justify-self: start; }
+  .summary, .grid { grid-template-columns: 1fr; gap: 10px; }
+  nav.toc { display: none; }
+  .kpi { border-right: 0; border-bottom: 1px solid var(--rule); padding-left: 0 !important; }
+  .score .name { width: 120px; }
+}
+@media print {
+  .tape, nav.toc, .theme-btn { display: none !important; }
+  .grid { grid-template-columns: 1fr; }
+  body { background: #fff; }
+  section.block { break-inside: avoid-page; }
+}
+</style>
+</head>
+<body>
+<div class="tape"><div class="wrap">
+  <span class="brand">earnings<b>/</b>desk</span>
+  <span id="tape-skill"></span>
+  <span id="tape-date"></span>
+  <span class="spacer"></span>
+  <button class="theme-btn" id="theme-btn" type="button" aria-label="Toggle color theme">◐ theme</button>
+</div></div>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="plate"><span class="tk" id="ticker"></span><span class="ex" id="exchange"></span></div>
+      <h1 id="title"></h1>
+      <div class="subtitle" id="subtitle"></div>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div id="stamp"></div>
+  </header>
+  <div class="kpis" id="kpis"></div>
+  <div class="summary" id="summary-wrap">
+    <div class="kicker">The short version</div>
+    <div class="body md" id="summary"></div>
+  </div>
+  <div class="grid">
+    <nav class="toc" id="toc" aria-label="Sections"></nav>
+    <main id="sections"></main>
+  </div>
+  <footer>
+    <span id="footer-left"></span>
+    <span>Not investment advice. Generated by AI from public data; verify before acting.</span>
+  </footer>
+</div>
+
+<!-- The skill writes its report JSON here; render_report.py fills it in. -->
+<script type="application/json" id="report-data">{"skill": "earnings-recap", "ticker": "AAPL", "company": "Apple Inc.", "exchange": "Nasdaq", "date": "2026-11-17", "title": "A real top line, a *borrowed* EPS beat", "subtitle": "Q4 FY26 (quarter ended Sep 26, 2026) · reported Nov 2, 2026 after the close", "meta": ["Price $351.91 (Yahoo public endpoint, Nov 17)", "Mkt cap ≈ $5.1T (price × SEC shares)", "FY ends late September", "Pre-print consensus: TipRanks via TheStreet"], "verdict": {"label": "Print quality", "value": "Mixed", "sub": "Revenue + guide beat · EPS beat ≈ tariff + tax", "tone": "warn"}, "kpis": [{"label": "Revenue", "value": "$114.5B", "delta": "+11.7% y/y · +1.0% vs cons.", "tone": "pos"}, {"label": "Diluted EPS", "value": "$2.10", "delta": "+5.5% vs $1.99 cons.", "tone": "pos"}, {"label": "EPS ex tariff refund", "value": "$2.05", "delta": "+3.0% vs cons.", "tone": "neutral"}, {"label": "Dec-Q revenue guide", "value": "+7–10%", "delta": "midpoint 8.5% vs 5.9% cons.", "tone": "pos"}, {"label": "Dec-Q gross margin guide", "value": "45–46%", "delta": "vs 46.9% ex-refund in Sep-Q", "tone": "neg"}, {"label": "Day-after move", "value": "−1.9%", "delta": "vs 2.5% avg abs after-close move", "tone": "neg"}], "summary": "Apple beat on revenue (**$114.5B, +11.7% y/y**, above the top of its own 9–11% guide) and guided the December quarter **above consensus** (+7–10% vs. 5.9%). But the **$0.11 EPS beat is almost entirely explained by two non-operating items**: a $0.05 tariff refund and a **15.0% tax rate** (vs. 17.6% over the prior three quarters, ≈ $0.06). Under the hood, memory costs are compressing margins (Dec-Q gross margin guide 45–46%), R&D jumped 32% for Siri AI, and **inventory is 2.5× last year's level**. The top line is strong; the earnings quality isn't.", "sections": [{"heading": "Scorecard", "kicker": "The numbers vs. the street", "tables": [{"caption": "Reported vs. pre-print consensus", "columns": ["Metric", "Actual", "Consensus", "Surprise", "Y/Y"], "rows": [["Revenue", "$114.5B", "$113.4B", {"text": "+1.0%", "tone": "pos", "pill": true}, "+11.7%"], ["Diluted EPS (GAAP)", "$2.10", "$1.99", {"text": "+5.5%", "tone": "pos", "pill": true}, "+13.5%"], ["EPS ex tariff refund", "$2.05", "$1.99", {"text": "+3.0%", "tone": "neutral", "pill": true}, "+10.8%"], ["Gross margin", "47.9%", "47–48% (guide)", {"text": "in range", "tone": "neutral", "pill": true}, "+71 bps"], ["Gross margin ex refund", "≈46.9%", "46–47% (guide ex refund)", {"text": "in range", "tone": "neutral", "pill": true}, "≈ −29 bps"], ["Operating expenses", "$19.19B", "$19.1–19.4B (guide)", {"text": "in range", "tone": "neutral", "pill": true}, "+20.6%"], ["Operating margin", "31.1%", "n/a", "—", "−52 bps"]]}, {"caption": "Revenue by category", "columns": ["Category", "Q4 FY26", "Q4 FY25", "Y/Y"], "rows": [["iPhone", "$57.6B", "$49.0B", {"text": "+17.5%", "tone": "pos"}], ["Mac", "$10.8B", "$8.7B", {"text": "+23.7%", "tone": "pos"}], ["iPad", "$6.2B", "$7.0B", {"text": "−10.4%", "tone": "neg"}], ["Wearables, Home & Acc.", "$8.3B", "$9.0B", {"text": "−7.9%", "tone": "neg"}], ["Services", "$31.6B", "$28.8B", {"text": "+9.8%", "tone": "neutral"}]]}], "charts": [{"type": "bar", "title": "Revenue by geography ($B), Q4 FY25 vs Q4 FY26", "yFormat": "usd", "labels": ["Americas", "Europe", "Greater China", "Japan", "Rest of APAC"], "datasets": [{"label": "Q4 FY25", "data": [44.2, 28.7, 14.5, 6.6, 8.4]}, {"label": "Q4 FY26", "data": [48.7, 32.0, 17.5, 6.5, 9.7]}]}], "after": "Revenue landed **above the top of Apple's own 9–11% guide**, led by iPhone (+17.5%, ahead of the guided mid-teens) and Mac (+23.7%). Greater China grew 21% y/y but, per TradingPedia, still came in about $1B short of expectations. Services slowed to +9.8%."}, {"heading": "Guidance", "kicker": "December quarter (Q1 FY27)", "tables": [{"columns": ["Metric", "Sep-Q guide (given Jul 30)", "Sep-Q actual", "Dec-Q guide (given Nov 2)", "Read"], "rows": [["Revenue growth y/y", "+9–11%", "+11.7%", "+7–10%", {"text": "Above 5.9% cons.", "tone": "pos", "pill": true}], ["Gross margin", "47–48% (incl. ~1 pt refund)", "47.9%", "45–46%", {"text": "Step down", "tone": "neg", "pill": true}], ["Services growth", "≈ June-Q rate ex FX", "+9.8%", "+8–9%", {"text": "Slowing", "tone": "warn", "pill": true}], ["Operating expenses", "$19.1–19.4B", "$19.19B", "not found", "—"]]}], "callouts": [{"title": "Implied December quarter", "body": "+7–10% on last year's $143.8B implies **$153.8–158.1B** (midpoint ≈ $156.0B), which would be Apple's biggest quarter ever. Management framed the range as its *best view of constrained supply*, so demand may be running higher than the guide.", "tone": "pos"}, {"title": "The margin problem", "body": "The 45.5% midpoint is ≈ **1.4 pts below** September's refund-adjusted margin. Management attributed most of the decline to **memory costs**, plus the Siri AI ramp. Memory is also constraining Mac and iPad supply.", "tone": "neg"}]}, {"heading": "Quality of the beat", "kicker": "Where the $0.11 came from", "tables": [{"caption": "EPS beat attribution vs. $1.99 consensus (estimates labeled)", "columns": ["Component", "EPS impact", "% of beat", "Basis"], "rows": [["Tariff refund (gross margin)", "+$0.05", "≈ 45%", "Disclosed in 8-K Ex.99.1"], ["Lower tax rate (15.0% vs 17.6%)", "≈ +$0.06", "≈ 55%", "Estimate: pretax $36.1B × 2.6 pts ÷ 14.63B shares, vs. prior-3-quarter avg; consensus tax assumption not found"], ["Other income ($504M vs $377M y/y)", "≈ +$0.01", "small", "Estimate, y/y delta after tax"], ["Operations (revenue beat at lower margin)", "≈ $0.00–0.01", "≈ 0–10%", "Residual; higher R&D absorbed the revenue upside"]]}], "scores": [{"name": "Operational share of EPS beat", "pct": 8, "value": "≈ 0–10%", "tone": "neg"}, {"name": "Cash conversion (FCF/NI, Q4)", "pct": 84, "value": "0.84", "tone": "warn"}, {"name": "Days inventory (DIO)", "pct": 70, "value": "22 vs 10 y/y", "tone": "warn"}, {"name": "Days payable (DPO)", "pct": 80, "value": "126 vs 118 y/y", "tone": "warn"}], "callouts": [{"title": "Inventory 2.5× last year", "body": "Inventories rose to **$14.5B from $5.7B** while cost of sales grew 10%. With memory prices spiking, this is plausibly a deliberate component pre-buy, but it ties up cash and risks margins if memory prices roll over. Ask management directly.", "tone": "warn"}, {"title": "Payables carried operating cash flow", "body": "FY26 operating cash flow of $145.1B (1.10× net income) looks strong, but **$12.2B came from higher payables** and $13.7B from other liabilities, against an $8.9B inventory build. Stretched DPO is not a durable source of cash.", "tone": "warn"}, {"title": "Buybacks did their usual work", "body": "Diluted shares fell 1.6% y/y, so EPS grew 13.5% on net income growth of 11.8%. That's capital allocation, not operations.", "tone": "neutral"}]}, {"heading": "Margin bridge", "kicker": "Y/Y, Q4 FY26 vs Q4 FY25", "charts": [{"type": "bar", "title": "Operating margin change by driver (bps)", "labels": ["Tariff refund", "Underlying gross margin", "R&D", "SG&A", "Total op. margin"], "datasets": [{"label": "bps", "data": [100, -29, -160, 36, -52]}]}], "body": "- **Gross margin** 47.2% → 47.9% (+71 bps). Without the ≈100 bps refund it was ≈ −29 bps, even though both products (36.2% → 37.2%) and services (75.3% → 76.0%) gross margins rose. That points to the refund sitting inside product margin and to memory pressure building.\n- **R&D** jumped to 10.2% of revenue from 8.7% (+$2.9B, +32% y/y). That is the Siri AI investment cycle.\n- **Incremental operating margin** = Δ operating income $3.2B ÷ Δ revenue $12.0B = **26.7%**, below the 31.1% operating margin. Apple is currently trading margin for AI and supply.", "after": "_Bridge figures computed from the 8-K Ex.99.1 income statement; the bucket split is approximate._"}, {"heading": "Reaction", "kicker": "What the market heard", "body": "AAPL fell **−1.9%** from the Nov 2 close to the Nov 3 close (−3.7% from the prior Friday's close) against an average absolute after-close move of **2.5%** over the last eight prints. That sits in line with history: a revenue beat and a strong guide offset by a **margin guide below hopes**, slower Services, and a China revenue shortfall. Six of the last eight prints have seen a negative reaction, which suggests the bar into prints is set above published consensus.", "tables": [{"caption": "Last eight earnings reactions (after-close session)", "columns": ["Release", "Prior close → next close", "After-close move"], "rows": [["Nov 2, 2026", "−3.69%", {"text": "−1.90%", "tone": "neg"}], ["Jul 30, 2026", "−8.66%", {"text": "−7.35%", "tone": "neg"}], ["Apr 30, 2026", "+3.69%", {"text": "+3.24%", "tone": "pos"}], ["Jan 29, 2026", "+1.19%", {"text": "+0.46%", "tone": "pos"}], ["Oct 30, 2025", "+0.25%", {"text": "−0.38%", "tone": "neg"}], ["Jul 31, 2025", "−3.19%", {"text": "−2.50%", "tone": "neg"}], ["May 1, 2025", "−3.36%", {"text": "−3.74%", "tone": "neg"}], ["Jan 30, 2025", "−1.40%", {"text": "−0.67%", "tone": "neg"}]]}]}, {"heading": "Thesis delta", "kicker": "What moved", "callouts": [{"title": "Strengthened: iPhone cycle", "body": "iPhone +17.5% and a record-December guide constrained by *supply*, not demand, with the iPhone Duo launch ahead.", "tone": "pos"}, {"title": "Weakened: margin durability", "body": "Memory costs push the gross margin guide to 45–46%, and R&D is up 32%. Earnings growth may lag revenue growth for several quarters.", "tone": "neg"}, {"title": "Watch: Services deceleration", "body": "9.8% now and 8–9% guided, with FX and third-party licensing pressure cited. Services is the margin engine (76% gross margin), so its growth rate matters more than its share.", "tone": "warn"}, {"title": "New question: inventory strategy", "body": "Is the $8.8B y/y inventory build a memory hedge, and at what price? A memory price reversal would turn it from a hedge into a write-down risk.", "tone": "warn"}], "after": "**Next:** run `transcript-decoder` for how management handled the memory and China questions, `guidance-tracker` to test whether Apple's 'constrained supply' guides tend to be beaten, and `thesis-tracker` to log the margin pillar as *under pressure*."}], "sources": [{"label": "Apple 8-K, Ex.99.1 Q4 FY26 press release, filed 2026-11-02 (accn 0000320193-26-000024)", "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000024/a8-kex991q4202609262026.htm"}, {"label": "SEC XBRL company facts (quarterly DSO/DIO/DPO, tax rate, cash conversion via statements.py)", "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json"}, {"label": "Consensus revenue $113.4B / EPS $1.99 and Dec-Q revenue consensus 5.9% (FactSet): TheStreet, Nov 2, 2026", "url": "https://pro.thestreet.com/trade-ideas/apple-tops-estimates-but-shares-fall-after-hours-on-poor-margin-guidance"}, {"label": "Dec-Q guidance (revenue +7–10%, GM 45–46%, Services +8–9%): 9to5Mac call coverage, Nov 2, 2026", "url": "https://9to5mac.com/?p=1077100"}, {"label": "Earnings call transcript: Six Colors, Nov 2026", "url": "https://sixcolors.com/post/2026/11/hello-everyone-its-john-apples-q4-2026-earnings-call-transcript/"}, {"label": "Sep-Q guidance (revenue +9–11%, GM 47–48% incl. ~1 pt refund, opex $19.1–19.4B): MarketBeat call highlights, Jul 30, 2026", "url": "https://www.marketbeat.com/instant-alerts/apple-q3-earnings-call-highlights-2026-07-30/"}, {"label": "Greater China shortfall vs. expectations: TradingPedia, Nov 3, 2026", "url": "https://www.tradingpedia.com/2026/11/03/apple-shares-fall-as-margin-outlook-china-eclipse-beat"}, "Prices and earnings reactions: Yahoo Finance public chart endpoint via market.py (unofficial, best-effort), retrieved 2026-11-17"]}</script>
+<script>
+(function () {
+  "use strict";
+  var data = JSON.parse(document.getElementById("report-data").textContent);
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); };
+  var md = function (s) {
+    if (!s) return "";
+    var html = window.marked ? marked.parse(String(s)) : "<p>" + esc(s) + "</p>";
+    return window.DOMPurify ? DOMPurify.sanitize(html) : html;
+  };
+  var TONES = ["pos", "neg", "warn", "neutral", "accent"];
+  var tone = function (t) { return TONES.indexOf(t) >= 0 ? t : "neutral"; };
+
+  // Theme toggle (remembered per viewer, safe if storage is blocked)
+  var root = document.documentElement;
+  try { var saved = localStorage.getItem("ed-theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+  $("theme-btn").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") ? root.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = dark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("ed-theme", next); } catch (e) {}
+    drawCharts();
+  });
+
+  // Masthead
+  document.title = data.title ? (data.ticker ? data.ticker + " · " : "") + String(data.title).replace(/\*(.+?)\*/g, "$1") : document.title;
+  $("tape-skill").textContent = data.skill ? "/" + data.skill : "";
+  $("tape-date").textContent = data.date || "";
+  $("ticker").textContent = data.ticker || "—";
+  $("exchange").textContent = [data.company, data.exchange].filter(Boolean).join(" · ");
+  $("title").innerHTML = esc(data.title || "Research report").replace(/\*(.+?)\*/g, "<em>$1</em>");
+  $("subtitle").textContent = data.subtitle || "";
+  $("meta").innerHTML = (data.meta || []).map(function (m) { return "<span>" + esc(m) + "</span>"; }).join("");
+  $("footer-left").textContent = "earnings-desk · " + (data.skill || "report") + (data.date ? " · " + data.date : "");
+
+  if (data.verdict) {
+    var v = data.verdict;
+    $("stamp").innerHTML = '<div class="stamp tone-' + tone(v.tone) + '"><div class="lbl">' + esc(v.label || "Verdict") + '</div><div class="val">' + esc(v.value) + "</div>" + (v.sub ? '<div class="sub">' + esc(v.sub) + "</div>" : "") + "</div>";
+  }
+
+  $("kpis").innerHTML = (data.kpis || []).map(function (k) {
+    return '<div class="kpi"><div class="l">' + esc(k.label) + '</div><div class="v">' + esc(k.value) + "</div>" + (k.delta ? '<div class="d tone-' + tone(k.tone) + '">' + esc(k.delta) + "</div>" : "") + "</div>";
+  }).join("");
+  if (!(data.kpis || []).length) $("kpis").style.display = "none";
+
+  if (data.summary) $("summary").innerHTML = md(data.summary); else $("summary-wrap").style.display = "none";
+
+  // Sections
+  var charts = [];
+  function renderTable(t) {
+    var cols = t.columns || [];
+    var numeric = cols.map(function (_, i) { return (t.rows || []).every(function (r) { var c = r[i]; c = (c && typeof c === "object") ? c.text : c; return c == null || c === "" || /^[\s$€£¥+\-–(]*[\d.,]+\s*[%xX)BMKbmk]*\s*(bps)?$/.test(String(c)); }); });
+    var head = "<tr>" + cols.map(function (c, i) { return '<th class="' + (numeric[i] ? "num" : "") + '">' + esc(c) + "</th>"; }).join("") + "</tr>";
+    var body = (t.rows || []).map(function (r) {
+      return "<tr>" + r.map(function (c, i) {
+        var cls = numeric[i] ? "num" : "";
+        if (c && typeof c === "object") {
+          var inner = c.pill ? '<span class="pill ' + tone(c.tone) + '">' + esc(c.text) + "</span>" : '<span class="tone-' + tone(c.tone) + '">' + esc(c.text) + "</span>";
+          return '<td class="' + cls + '">' + inner + "</td>";
+        }
+        return '<td class="' + cls + '">' + esc(c) + "</td>";
+      }).join("") + "</tr>";
+    }).join("");
+    return (t.caption ? '<div class="kicker" style="margin-top:18px">' + esc(t.caption) + "</div>" : "") + '<div class="tablewrap"><table class="data"><thead>' + head + "</thead><tbody>" + body + "</tbody></table></div>";
+  }
+  function renderScores(list) {
+    return list.map(function (s) {
+      var pct = Math.max(0, Math.min(100, Number(s.pct) || 0));
+      return '<div class="score"><span class="name">' + esc(s.name) + '</span><span class="bar"><i style="width:' + pct + "%;background:var(--" + tone(s.tone) + ', var(--ink-3))"></i></span><span class="num tone-' + tone(s.tone) + '">' + esc(s.value) + "</span></div>";
+    }).join("");
+  }
+  function renderCallouts(list) {
+    return '<div class="callouts">' + list.map(function (c) { return '<div class="callout ' + tone(c.tone) + '"><div class="t">' + esc(c.title) + '</div><div class="b">' + md(c.body) + "</div></div>"; }).join("") + "</div>";
+  }
+
+  var html = "", toc = "";
+  (data.sections || []).forEach(function (s, i) {
+    var id = "s" + i;
+    toc += '<a href="#' + id + '">' + esc(s.heading) + "</a>";
+    html += '<section class="block" id="' + id + '">' + (s.kicker ? '<div class="kicker">' + esc(s.kicker) + "</div>" : "") + "<h2>" + esc(s.heading) + "</h2>";
+    if (s.callouts) html += renderCallouts(s.callouts);
+    if (s.body) html += '<div class="md">' + md(s.body) + "</div>";
+    if (s.scores) html += renderScores(s.scores);
+    (s.tables || (s.table ? [s.table] : [])).forEach(function (t) { html += renderTable(t); });
+    (s.charts || (s.chart ? [s.chart] : [])).forEach(function (c) { var cid = "c" + charts.length; charts.push({ id: cid, spec: c }); html += '<div class="chart"><canvas id="' + cid + '" aria-label="' + esc(c.title || "chart") + '"></canvas></div>'; });
+    if (s.after) html += '<div class="md">' + md(s.after) + "</div>";
+    html += "</section>";
+  });
+  if ((data.sources || []).length) {
+    toc += '<a href="#sources">Sources</a>';
+    html += '<section class="block sources" id="sources"><div class="kicker">Every number traces back here</div><h2>Sources</h2><ol>' + data.sources.map(function (s) {
+      var label = typeof s === "string" ? s : (s.label || s.url);
+      var url = typeof s === "string" ? (/^https?:/.test(s) ? s : null) : s.url;
+      return "<li>" + (url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(label) + "</a>" : esc(label)) + "</li>";
+    }).join("") + "</ol></section>";
+  }
+  $("sections").innerHTML = html;
+  $("toc").innerHTML = toc;
+
+  // Highlight the current section in the TOC
+  if ("IntersectionObserver" in window) {
+    var links = Array.prototype.slice.call(document.querySelectorAll("nav.toc a"));
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) links.forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id); }); });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    document.querySelectorAll("section.block").forEach(function (s) { io.observe(s); });
+  }
+
+  // Charts: spec = {type, title, labels, datasets:[{label, data, type?}], yFormat?: "pct"|"usd"|"x"}
+  var live = [];
+  function cssVar(n) { return getComputedStyle(root).getPropertyValue(n).trim(); }
+  function fmt(v, f) { if (f === "pct") return v + "%"; if (f === "usd") return "$" + v; if (f === "x") return v + "x"; return v; }
+  function drawCharts() {
+    if (!window.Chart) return;
+    live.forEach(function (c) { c.destroy(); }); live = [];
+    var palette = ["--chart-1", "--chart-2", "--chart-3", "--chart-4", "--chart-5"].map(cssVar);
+    Chart.defaults.font.family = cssVar("--sans");
+    Chart.defaults.color = cssVar("--ink-3");
+    charts.forEach(function (c) {
+      var s = c.spec, type = s.type || "bar";
+      var ds = (s.datasets || []).map(function (d, i) {
+        var col = palette[i % palette.length];
+        return Object.assign({ backgroundColor: (d.type || type) === "line" ? col : col + "cc", borderColor: col, borderWidth: (d.type || type) === "line" ? 2.5 : 0, borderRadius: 3, pointRadius: 2.5, tension: 0.25 }, d);
+      });
+      live.push(new Chart(document.getElementById(c.id), {
+        type: type,
+        data: { labels: s.labels || [], datasets: ds },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { title: { display: !!s.title, text: s.title, align: "start", color: cssVar("--ink"), font: { size: 13, weight: "600" } }, legend: { display: ds.length > 1, position: "bottom", labels: { boxWidth: 10, boxHeight: 10 } } },
+          scales: type === "pie" || type === "doughnut" ? {} : { x: { grid: { display: false } }, y: { grid: { color: cssVar("--rule") }, ticks: { callback: function (v) { return fmt(v, s.yFormat); } } } }
+        }
+      }));
+    });
+  }
+  drawCharts();
+  if (window.matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawCharts);
+})();
+</script>
+</body>
+</html>
