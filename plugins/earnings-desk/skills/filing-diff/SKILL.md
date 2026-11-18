@@ -25,7 +25,7 @@ Companies reuse most of their filing text year after year, so the **edits** are 
 - `TICKER` (required).
 - `--form` 10-K (default) or 10-Q.
 - `--section`: `1A` risk factors (default), `7` or `mdna`, `3` legal proceedings, `9a` controls, `1` business, `7a` market risk, or any heading text (for example `"Critical Accounting"`).
-- `--new` (default 0 = latest) and `--old` (default 1 = the one before) **filing indexes**, plus `--max-items` (default 40).
+- `--new` (default 0 = latest) and `--old` (default 1 = the one before) **filing indexes**, plus `--max-items` (default 80; if the output says `truncated: true`, re-run with a higher number).
 
 ### Getting the index right (read this)
 Indexes count **only original filings of the chosen form**, newest first. Amendments (10-K/A, 10-Q/A) are skipped, so a Part III-only 10-K/A can't knock the real 10-K out of index 0.
@@ -37,18 +37,22 @@ Indexes count **only original filings of the chosen form**, newest first. Amendm
   ```
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Pick the filings** with the `filings` command above. Note filed dates and period ends for both sides of the comparison.
 
-2. **Run the core diffs** (10-K example, then 10-Q year-on-year):
+2. **Run the diffs the question needs.** For a risk-factors question, run `1A` (add `3` and `9a` if legal or controls matter). For a full filing review, run all six below. Full set (10-K, then 10-Q year-on-year):
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 1A > /tmp/TICKER-diff-1a.json
-   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 7 > /tmp/TICKER-diff-mdna.json
-   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 3 > /tmp/TICKER-diff-legal.json
-   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 9a > /tmp/TICKER-diff-9a.json
-   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section "Critical Accounting" > /tmp/TICKER-diff-cap.json
-   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --form 10-Q --section mdna --old 3 > /tmp/TICKER-diff-q-mdna.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 1A > .earnings-desk/work/TICKER-diff-1a.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 7 > .earnings-desk/work/TICKER-diff-mdna.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 3 > .earnings-desk/work/TICKER-diff-legal.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section 9a > .earnings-desk/work/TICKER-diff-9a.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --section "Critical Accounting" > .earnings-desk/work/TICKER-diff-cap.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/diff_sections.py TICKER --form 10-Q --section mdna --old 3 > .earnings-desk/work/TICKER-diff-q-mdna.json
    ```
    Output JSON: `new_filing`, `old_filing` (form, filed, period, accession, url), `stats` (paragraph counts, added, removed, changed, unchanged, word counts, `word_delta_pct`), `added[]` and `removed[]` (each `text` up to 1,500 chars plus `priority_terms`, sorted with priority hits first and then by length), `changed[]` (`similarity`, inline `redline` with `[-deleted-]` and `{+inserted+}`, `new`, `priority_terms`), `lexicon_per_10k_words` (old, new, delta per category), `truncated` (more items than `--max-items`).
 
@@ -56,7 +60,7 @@ Indexes count **only original filings of the chosen form**, newest first. Amendm
 
 4. **Triage in this order:** priority-term hits in `added` → `removed` paragraphs (deletions are under-read and often the most telling) → `changed` paragraphs with low similarity (0.55–0.75 means substantive rewording) → lexicon deltas. Ignore pure date or fiscal-year rolls and renumbering.
 
-5. **Read the context.** For each finding that matters, open the paragraph in `saved_to` (grep a distinctive phrase) and read the surrounding text. Then check it against the numbers (`statements.py`) and the latest press release. A new risk factor about a customer is far more important if that customer's receivable also jumped.
+5. **Read the context.** For each finding that matters, open the full filing text at `new_saved_to` / `old_saved_to` from the diff output (grep a distinctive phrase) and read the surrounding text. Then check it against the numbers (`statements.py`) and the latest press release. A new risk factor about a customer is far more important if that customer's receivable also jumped.
 
 ## Analysis framework
 
@@ -91,7 +95,7 @@ Indexes count **only original filings of the chosen form**, newest first. Amendm
 **Questions to ask of every finding:** Is it new information or new disclosure of old information? Does it connect to a number (receivables, inventory, segment margin, debt)? Is the language more or less specific than before? Who is the audience: is this lawyers protecting against a lawsuit, or a business change? Did peers add the same language (industry-wide, like tariffs or export controls) or is it company-specific (more important)?
 
 ## Output
-Write `/tmp/TICKER-filing-diff.json` per `../sec-edgar/references/report-schema.md`, `"skill": "filing-diff"`.
+Write `.earnings-desk/work/TICKER-filing-diff.json` per `../sec-edgar/references/report-schema.md`, `"skill": "filing-diff"`.
 
 - **title**: the single most important change, e.g. `"A new *customer concentration* risk appears"` or `"Mostly *boilerplate*, one real change"`.
 - **subtitle**: "10-K filed <date> vs. 10-K filed <date> · Items 1A, 7, 3, 9A".
@@ -107,7 +111,7 @@ Write `/tmp/TICKER-filing-diff.json` per `../sec-edgar/references/report-schema.
 - **sources**: both filings' accession numbers and URLs for every section compared.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-filing-diff.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-filing-diff.json --out-dir earnings-desk-reports
 ```
 **In chat** give the verdict, the top 3 changes (each with a short quote and its meaning), a one-line stats summary, and the report paths.
 

@@ -26,11 +26,15 @@ Over a decade, what management does with the cash matters as much as how much ca
 - Optional: a cost-of-capital assumption (default 9% for a typical large cap, 10–11% for small caps or cyclicals; always label it as an assumption).
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Ten years of cash flows and returns**
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 10 --quarters 8 > /tmp/TICKER-st.json
+   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 10 --quarters 8 > .earnings-desk/work/TICKER-st.json
    ```
    Per year use `operating_cash_flow`, `capex`, `fcf`, `acquisitions`, `buybacks`, `dividends_paid`, `sbc`, `total_debt`, `net_debt`, `cash`, `goodwill`, `shares_diluted`, `roic_pct`, `eps_diluted`. `acquisitions` is null for many companies that tag deals differently (MSFT is null even with Activision in FY24). When it's null, read the 10-K cash flow statement, and treat a goodwill jump as the tell (MSFT goodwill went from $67.9B to $119.2B in FY24).
 
@@ -90,7 +94,7 @@ Over a decade, what management does with the cash matters as much as how much ca
 **5. ROIC vs. WACC trend**
 - `roic_pct` per year vs. your stated WACC assumption. The spread and its direction across the decade is the single best summary of allocation quality.
 - Incremental ROIC = Δ NOPAT / Δ invested capital over 3–5 years, i.e. what the last dollars earned.
-- Caveats: net-cash firms show inflated ROIC (MSFT showed 117% in FY19, because the script subtracts cash from invested capital), and acquisitions add goodwill that lowers ROIC. Compute ROIC ex-goodwill too.
+- Caveats: `roic_pct` uses NOPAT over average (equity + total debt) without subtracting cash, so treat it as a return on all capital; acquisitions add goodwill that depresses ROIC for years, so compare organic and reported returns.
 
 **6. Dividend sustainability**
 - FCF payout = dividends / FCF (below 60% comfortable, 60–80% fine for stable businesses, above 100% unsustainable without debt). Earnings payout = dividends / net income.
@@ -120,7 +124,7 @@ Over a decade, what management does with the cash matters as much as how much ca
 Score five pillars from 0–100 (reinvestment returns, buybacks, M&A, dividends and balance sheet, incentives), weight them by where the cash actually went, and map the result to the grade. Don't penalize a pillar the company doesn't use (no dividend is not a failure).
 
 ## Output
-Write `/tmp/TICKER-capital-allocation.json` per `../sec-edgar/references/report-schema.md`, `"skill": "capital-allocation"`.
+Write `.earnings-desk/work/TICKER-capital-allocation.json` per `../sec-edgar/references/report-schema.md`, `"skill": "capital-allocation"`.
 
 - **title**: e.g. `"Buybacks that *actually shrink* the share count"` or `"Ten years of *buying high*"`.
 - **verdict**: `{"label": "Capital allocation", "value": "A | B | C | D | F", "sub": "<one-line reason>", "tone": "pos (A/B) | neutral (C) | warn (D) | neg (F)"}`.
@@ -136,7 +140,7 @@ Write `/tmp/TICKER-capital-allocation.json` per `../sec-edgar/references/report-
 - **sources**: statements.py accessions, concept-tag accessions, 10-K and DEF 14A accession numbers, the quote source and timestamp.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-capital-allocation.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-capital-allocation.json --out-dir earnings-desk-reports
 ```
 **In chat** give the grade with a one-line reason, a compact sources-and-uses table, the buyback ROI line, the best and worst decision of the decade, the pay-alignment verdict, and the report paths.
 

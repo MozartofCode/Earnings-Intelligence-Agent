@@ -23,6 +23,10 @@ Most research is a bull case wearing a lab coat. This skill forces real adversar
 - `TICKER` (required). Optional: the user's own thesis (to put on trial), a horizon (default 2 years), and focus areas.
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 
@@ -102,7 +106,7 @@ Report JSON per [../sec-edgar/references/report-schema.md](../sec-edgar/referenc
 
 Render:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-bull-bear-debate.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-bull-bear-debate.json --out-dir earnings-desk-reports
 ```
 **In chat:** "Edge: Bulls (60/40). The debate comes down to (1) … and (2) …. The verdict flips if …." Then the report paths, and an offer to save the key variables as KPIs with `/earnings-desk:thesis-tracker`.
 

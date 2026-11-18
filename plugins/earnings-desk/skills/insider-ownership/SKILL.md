@@ -25,11 +25,15 @@ Insiders sell for many reasons but buy for one. This skill filters the noise of 
 - `--days` window (default 365 for this skill; 180 for a quick read). `--limit` is the number of Form 4 **filings** scanned (default 40). Raise it to 100–200 for mega-caps, where 40 filings may cover only a few months.
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Form 4 transactions**
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py insiders TICKER --days 365 --limit 150 > /tmp/TICKER-insiders.json
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py insiders TICKER --days 365 --limit 150 > .earnings-desk/work/TICKER-insiders.json
    ```
    Output: `window_days`, `filings_scanned`, `parse_errors`, `summary` (`open_market_buys`, `buy_value`, `open_market_sales`, `sale_value`, `unique_buyers`, `sales_under_10b5_1`), and `transactions[]` with `filed`, `date`, `insider`, `role`, `code`, `type`, `acquired_disposed`, `shares`, `price`, `value`, `shares_after`, `10b5_1_plan` and `url`.
    Codes: **P** open-market buy, **S** open-market sale, A grant or award, M or X option exercise, F tax withholding, G gift, D disposition to issuer, C conversion, J other. **Only P and S carry signal.** F and A are mechanical, and G is estate planning.
@@ -90,7 +94,7 @@ Insiders sell for many reasons but buy for one. This skill filters the noise of 
 - **Caution:** large discretionary sales by the CEO, CFO or multiple officers (especially above 25% of holdings or ahead of bad news), new Form 144s stacking up, pledging, or a rising short interest with a credible bear case.
 
 ## Output
-Write `/tmp/TICKER-insider-ownership.json` per `../sec-edgar/references/report-schema.md`, `"skill": "insider-ownership"`.
+Write `.earnings-desk/work/TICKER-insider-ownership.json` per `../sec-edgar/references/report-schema.md`, `"skill": "insider-ownership"`.
 
 - **title**: e.g. `"Three insiders *bought the dip*"` or `"Steady selling, *nothing unusual*"`.
 - **subtitle**: "Form 4 activity, last <N> days · ownership as of <proxy date>".
@@ -106,7 +110,7 @@ Write `/tmp/TICKER-insider-ownership.json` per `../sec-edgar/references/report-s
 - **sources**: Form 4 index URLs for every cited trade, DEF 14A and 13D/G accession numbers, and every web source with site and date.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-insider-ownership.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-insider-ownership.json --out-dir earnings-desk-reports
 ```
 **In chat** give the verdict and the key trade, a compact table of meaningful P and S trades, the ownership and control structure in one line, short interest (cited) if found, and the report paths.
 

@@ -26,11 +26,15 @@ A disciplined three-statement read: growth, profitability, returns, cash and bal
 - Optional focus: "margins only", "balance sheet", "cash flow".
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Pull normalized statements**
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/scripts/statements.py TICKER --years 5 --quarters 8 > /tmp/TICKER-st.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/statements.py TICKER --years 5 --quarters 8 > .earnings-desk/work/TICKER-st.json
    ```
    Output: `annual[]` and `quarterly[]` rows with core lines plus computed ratios, `ttm`, `missing_metrics`, `sources` (accession numbers) and `notes`. Field reference:
    - Lines: `revenue, cost_of_revenue, gross_profit, rnd, sga, operating_income, interest_expense, pretax_income, income_tax, net_income, eps_diluted, shares_diluted, da, sbc, operating_cash_flow, capex, acquisitions, buybacks, dividends_paid`, and balance sheet items `cash, short_term_investments, receivables, inventory, current_assets, ppe_net, goodwill, total_assets, accounts_payable, current_liabilities, long_term_debt, short_term_debt, total_liabilities, retained_earnings, equity, shares_outstanding`.
@@ -76,7 +80,7 @@ Definitions, formulas, benchmarks by business model and common distortions are i
 **Questions to ask:** Is margin expansion from price, mix, scale or cost cuts, and which of those repeats? Is the growth being funded by the balance sheet (rising debt, falling DPO, factoring)? What would FCF look like at maintenance capex? How much of EPS growth is buybacks vs. net income? Did anything get reclassified (segments, opex lines) that breaks comparability?
 
 ## Output
-Write `/tmp/TICKER-financial-statements.json` per `../sec-edgar/references/report-schema.md`, `"skill": "financial-statements"`.
+Write `.earnings-desk/work/TICKER-financial-statements.json` per `../sec-edgar/references/report-schema.md`, `"skill": "financial-statements"`.
 
 - **title**: the headline economic fact, e.g. `"Margins *still expanding* at scale"` or `"Growth is *costing more* cash"`.
 - **verdict**: `{"label": "Financial profile", "value": "Strong | Solid | Mixed | Weak | Deteriorating", "sub": "e.g. high ROIC, FCF lagging", "tone": "pos|neutral|warn|neg"}`.
@@ -93,7 +97,7 @@ Write `/tmp/TICKER-financial-statements.json` per `../sec-edgar/references/repor
 - **sources**: every accession from statements.py `sources`, plus the 10-K and 10-Q MD&A filings used.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-financial-statements.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-financial-statements.json --out-dir earnings-desk-reports
 ```
 **In chat** give the verdict, a compact KPI table, 3–5 bullets on what changed and why, one "watch next quarter" item, and the report paths.
 

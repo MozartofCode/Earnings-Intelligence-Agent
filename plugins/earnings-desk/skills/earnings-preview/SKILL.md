@@ -26,6 +26,10 @@ Stocks don't trade on beats. They trade on the gap between the print and what th
 - Data setup (SEC user agent, optional keys) lives in `sec-edgar`. Run `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py status` once.
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Calendar and context.**
@@ -97,7 +101,7 @@ Good questions force a number or expose a contradiction. Avoid questions managem
 Tie each question to a KPI or risk named earlier.
 
 ## Output
-Write `/tmp/<TICKER>-earnings-preview.json` per `../sec-edgar/references/report-schema.md`.
+Write `.earnings-desk/work/<TICKER>-earnings-preview.json` per `../sec-edgar/references/report-schema.md`.
 - `skill`: `"earnings-preview"`; `title` e.g. `"The bar is *higher* than consensus"`; `subtitle`: "Q3 FY26 preview · reports Nov 19 after close".
 - `verdict`: `{label: "Setup", value: "Bar is low | Balanced | Bar is high | Priced for perfection", sub: "<one-phrase reason>", tone: pos | neutral | warn | neg}`.
 - `kpis` (4-6): Consensus revenue (with guide-midpoint delta), Consensus EPS, Whisper estimate (labeled "est."), Implied move vs. hist. avg, 1-month run-up, Usual beat (median 8Q).
@@ -112,7 +116,7 @@ Write `/tmp/<TICKER>-earnings-preview.json` per `../sec-edgar/references/report-
 
 Render:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-earnings-preview.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/<TICKER>-earnings-preview.json --out-dir earnings-desk-reports
 ```
 Fix any warnings. In chat, print: the verdict, consensus vs. whisper in one line, implied vs. historical move, the swing KPI, and the HTML + Markdown paths.
 

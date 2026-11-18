@@ -26,12 +26,16 @@ A guide is only as good as the team that issues it. Some managements set bars th
 - `metrics` (optional): restrict to specific metrics; default is every guided metric found.
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Inventory the releases.**
    `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 80` and keep those with items containing `2.02`. Then pull each release, saving to disk to protect context:
    ```bash
-   for i in $(seq 0 11); do python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index $i --max-chars 150000 > /tmp/TICKER-er$i.json; done
+   for i in $(seq 0 11); do python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index $i --max-chars 150000 > .earnings-desk/work/TICKER-er$i.json; done
    ```
    Some companies give guidance only on the call or in a separate investor presentation (often filed as Ex.99.2, which `earnings-release` includes when present). For call-only guidance, web search the transcript (IR site first) and cite it. Some guide only at an annual investor day: capture that too, with the date.
 2. **Extract every guide.** Search each release for "outlook", "guidance", "expects", "anticipates", "for the fourth quarter", "full year", "fiscal 20", "range", "approximately". For each statement record: issue date, accession, period guided (Q or FY, with fiscal label), metric, basis (GAAP / non-GAAP / constant currency / organic), low, high, midpoint, and any stated assumptions (FX rate, tax rate, share count, M&A excluded). Store as a table. Point estimates have low = high; "at least X" gets low = X and no high (note it).
@@ -90,7 +94,7 @@ State the class per metric when they differ (e.g. sandbags revenue, over-promise
 `High (reliable sandbagger)`, `High (straight shooter)`, `Medium`, `Low (over-promiser)`, or `Low (erratic)`, with the sub-label naming the dominant pattern and confidence (pairs counted).
 
 ## Output
-Write `/tmp/<TICKER>-guidance-tracker.json` per `../sec-edgar/references/report-schema.md`.
+Write `.earnings-desk/work/<TICKER>-guidance-tracker.json` per `../sec-edgar/references/report-schema.md`.
 - `skill`: `"guidance-tracker"`; `title` e.g. `"A *reliable* sandbagger"` or `"Guides to hope, *cuts in Q3*"`; `subtitle`: "12 quarters of guidance, Q1 FY24 - Q4 FY26".
 - `verdict`: `{label: "Guidance credibility", value: "High | Medium | Low", sub: "Sandbagger · 11/12 above midpoint", tone: pos | neutral | neg}`.
 - `kpis` (4-6): Revenue hit rate (n), Avg beat vs. own midpoint, Above-high rate, FY guide drift (avg), # dropped metrics, Credibility-adjusted current guide.
@@ -105,7 +109,7 @@ Write `/tmp/<TICKER>-guidance-tracker.json` per `../sec-edgar/references/report-
 
 Render:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-guidance-tracker.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/<TICKER>-guidance-tracker.json --out-dir earnings-desk-reports
 ```
 Fix warnings. In chat: verdict, hit rate and mean beat for revenue and EPS, any dropped metric, the credibility-adjusted current guide, and the HTML + Markdown paths.
 

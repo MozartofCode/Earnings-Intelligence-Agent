@@ -25,6 +25,10 @@ Everything a portfolio manager wants in the first five minutes: what the busines
 - Optional: years of history (default 5), focus (for example "just the segments").
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 Scripts are relative to this skill folder. Set `SEC_USER_AGENT` first (see `sec-edgar`). If a command returns 403, ask the user for a name and email; never invent one.
@@ -112,7 +116,7 @@ Scripts are relative to this skill folder. Set `SEC_USER_AGENT` first (see `sec-
 **Questions a great analyst asks on page one.** Who pays and why can't they switch? What share of profit comes from one segment or one customer? Is growth organic or bought? Does FCF track net income? Is the share count falling or rising? What is the one number management will be judged on next quarter?
 
 ## Output
-Write `/tmp/TICKER-company-tearsheet.json` per `../sec-edgar/references/report-schema.md`, with `"skill": "company-tearsheet"`.
+Write `.earnings-desk/work/TICKER-company-tearsheet.json` per `../sec-edgar/references/report-schema.md`, with `"skill": "company-tearsheet"`.
 
 - **title**: the company's essence with an accent, e.g. `"The *picks-and-shovels* of AI compute"`. **subtitle**: "Company tearsheet · FY ends <month> · data through <latest period>".
 - **meta**: price with source and date, market cap, EV, sector (SIC), next earnings date (marked estimate if keyless).
@@ -130,7 +134,7 @@ Write `/tmp/TICKER-company-tearsheet.json` per `../sec-edgar/references/report-s
 
 Render and fix any warnings:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-company-tearsheet.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-company-tearsheet.json --out-dir earnings-desk-reports
 ```
 **In chat** print the business-model sentence, the KPI row as a compact table, the three bulls and three bears in a few words each, the key debate, the next catalyst date, then the HTML and Markdown paths.
 

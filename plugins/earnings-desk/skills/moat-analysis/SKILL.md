@@ -24,6 +24,10 @@ A moat is not a good product or a famous name. It's a structural reason that **r
 - `TICKER` (required). Optional: up to 3 key competitors to benchmark (default: the 10-K's named competitors plus `edgar.py peers`), and the years of history (default 10, as available).
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 Commands are relative to this skill folder. Save long filing text to disk and grep it (the `saved_to` field).
@@ -99,7 +103,7 @@ Report JSON per [../sec-edgar/references/report-schema.md](../sec-edgar/referenc
 
 Render:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-moat-analysis.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-moat-analysis.json --out-dir earnings-desk-reports
 ```
 **In chat:** "Moat: Narrow, Trend: Stable. The power is switching costs (4/5: NRR 115%, 3-yr contracts); ROIC has held 25–30% for 8 years. The main threat is X." Then the report paths.
 

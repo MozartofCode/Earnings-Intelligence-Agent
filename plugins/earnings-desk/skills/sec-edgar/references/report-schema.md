@@ -34,7 +34,7 @@ Keep it factual, sourced and skimmable. The template handles all styling.
       ],
       "body": "Markdown paragraphs, lists, blockquotes, small tables.",
       "scores": [                            // horizontal bars: 0–100 pct + a display value
-        { "name": "Beneish M-score", "pct": 72, "value": "-1.15", "tone": "warn" }
+        { "name": "Beneish M-score", "pct": 60, "value": "-1.62", "tone": "warn" }
       ],
       "tables": [
         {

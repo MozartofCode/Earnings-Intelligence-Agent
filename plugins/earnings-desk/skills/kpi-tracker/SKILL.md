@@ -25,16 +25,20 @@ Revenue is an output. KPIs are the engine: retention, pricing, volume, capacity,
 - `quarters` (optional): default 8, up to 12.
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Identify the industry and the KPI set.**
-   `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py profile TICKER` (SIC code and description). Map to an industry in `references/kpi-library.md`. Then read the latest release (`python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 150000 > /tmp/TICKER-er0.json`) and note every operating metric the company headlines or tables. The company's own headline KPIs override the library.
+   `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py profile TICKER` (SIC code and description). Map to an industry in `references/kpi-library.md`. Then read the latest release (`python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 150000 > .earnings-desk/work/TICKER-er0.json`) and note every operating metric the company headlines or tables. The company's own headline KPIs override the library.
 2. **Look for XBRL first (cleanest series).** Some KPIs are tagged:
    - Standard: `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py concept TICKER RevenueRemainingPerformanceObligation` (RPO), `ContractWithCustomerLiabilityCurrent` (deferred revenue), `RevenueRemainingPerformanceObligationPercentage` (share recognized within the next period, which gives cRPO), `InventoryNet`, `NumberOfStores`, `NumberOfRealEstateProperties`, `AreaOfRealEstateProperty`.
    - Other standard taxonomies: `--taxonomy srt` or `--taxonomy dei` for a few count-type facts.
    - Custom, company-prefixed tags (e.g. `nflx:PaidMemberships`) are generally **not** served by SEC's XBRL API, so `concept` returns "not reported" for them. That is expected: go to text extraction (step 3). If you know the filing, the tagged value is still visible in the filing's own document, so cite that accession.
    `concept` returns raw, undimensioned facts: dedupe by `end` date and keep the latest-filed value (restated figures supersede). Sanity-check scale and scope against the filing text. A fact can cover only a subset (e.g. one store class) or carry an obvious scaling error in an old filing.
-3. **Extract from text (most KPIs live here).** Loop over releases (`--index 0..N`, saved to `/tmp/TICKER-er$i.json`) and the 10-Q MD&A:
+3. **Extract from text (most KPIs live here).** Loop over releases (`--index 0..N`, saved to `.earnings-desk/work/TICKER-er$i.json`) and the 10-Q MD&A:
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-Q --section mdna --index 0
    python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-K --section mdna --index 0
@@ -88,7 +92,7 @@ Revenue is an output. KPIs are the engine: retention, pricing, volume, capacity,
 - **Deteriorating:** a core KPI turned negative y/y, or a KPI was dropped/redefined amid weakness.
 
 ## Output
-Write `/tmp/<TICKER>-kpi-tracker.json` per `../sec-edgar/references/report-schema.md`.
+Write `.earnings-desk/work/<TICKER>-kpi-tracker.json` per `../sec-edgar/references/report-schema.md`.
 - `skill`: `"kpi-tracker"`; `title` e.g. `"cRPO is *re-accelerating*"`; `subtitle`: "8 quarters of operating KPIs, Q4 FY24 - Q3 FY26".
 - `verdict`: `{label: "KPI momentum", value: "Accelerating | Stable | Decelerating | Deteriorating", sub: "Leading KPI + latest change", tone: pos | neutral | warn | neg}`.
 - `kpis` (4-6): the latest value of each headline KPI with `delta` = y/y and acceleration (e.g. "cRPO $41.2B", "+18% y/y · +2 pts accel.").
@@ -103,7 +107,7 @@ Write `/tmp/<TICKER>-kpi-tracker.json` per `../sec-edgar/references/report-schem
 
 Render:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-kpi-tracker.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/<TICKER>-kpi-tracker.json --out-dir earnings-desk-reports
 ```
 Fix warnings. In chat: verdict, the leading KPI's last value with y/y and acceleration, any definition change, and the HTML + Markdown paths.
 

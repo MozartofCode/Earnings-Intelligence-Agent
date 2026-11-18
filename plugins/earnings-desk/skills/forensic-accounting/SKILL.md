@@ -26,12 +26,16 @@ Quantitative screens tell you **where** to dig. The filings tell you **whether**
 - Optional focus (for example a specific short-seller allegation to test).
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Market cap, then scores**
    ```bash
    python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py quote TICKER        # use market_cap
-   python3 ${CLAUDE_SKILL_DIR}/scripts/scores.py TICKER --market-cap <market_cap> > /tmp/TICKER-scores.json
+   python3 ${CLAUDE_SKILL_DIR}/scripts/scores.py TICKER --market-cap <market_cap> > .earnings-desk/work/TICKER-scores.json
    ```
    Output: `fiscal_year` and `prior_year` (period ends compared), `sic`, `is_financial`, and:
    - `beneish`: `m_score`, `zone` (elevated above −1.78), `components` (DSRI, GMI, AQI, SGI, DEPI, SGAI, LVGI, TATA), `defaulted_to_1` (components set to 1.0 because inputs were missing), or `available: false` with `missing`.
@@ -42,7 +46,7 @@ Quantitative screens tell you **where** to dig. The filings tell you **whether**
 
 2. **Multi-year context.** Scores compare only the latest year with the prior one. Run the statements for the trend:
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 6 --quarters 8 > /tmp/TICKER-st.json
+   python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 6 --quarters 8 > .earnings-desk/work/TICKER-st.json
    ```
    Check net income vs. OCF for each year, receivables growth vs. revenue growth, inventory growth vs. COGS growth, and goodwill and capex trends.
 
@@ -63,14 +67,30 @@ Quantitative screens tell you **where** to dig. The filings tell you **whether**
 
 5. **GAAP vs. adjusted gap** (last 4–8 quarters)
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index 0 --max-chars 40000
-   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index 4 --max-chars 40000
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filings TICKER --forms 8-K --limit 40     # find the Item 2.02 releases and their dates
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index 0 --max-chars 200000 > .earnings-desk/work/TICKER-er0.json
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --index 4 --max-chars 200000 > .earnings-desk/work/TICKER-er4.json
    ```
    From the reconciliation table record GAAP vs. non-GAAP operating income or EPS and each add-back. Track the gap as a % of GAAP and whether new add-back categories appear.
 
-6. **Language changes**: `python3 ${CLAUDE_SKILL_DIR}/../filing-diff/scripts/diff_sections.py TICKER --section "Critical Accounting"` and `--section 9a` show whether policies or controls wording changed.
+   `--index 0` is the most recent release. If the question is about a specific fiscal year, use the `filings` list to pick the release for that period (e.g. the Q4 release filed after the fiscal year end) rather than assuming index 0. Reconciliation tables sit near the end of the exhibit, so keep `--max-chars` large and grep the saved file for "Non-GAAP" or "reconciliation".
 
-7. **Score the checklist and write the verdict** using the framework below.
+6. **Language changes**: `python3 ${CLAUDE_SKILL_DIR}/../filing-diff/scripts/diff_sections.py TICKER --section 9a` shows whether controls wording changed. For accounting policies, diff the critical-estimates heading itself (e.g. `--section "Critical Accounting Estimates"`); if that pulls in unrelated MD&A, read the two saved filings (`new_saved_to`, `old_saved_to`) and compare the critical-estimates subsection by hand.
+
+7. **Events after the 10-K.** Score the checklist as of the annual report, then list anything material filed since (8-K items 1.01, 2.03, 4.01, 4.02, 5.02, non-GAAP definition changes) in a separate **Since the 10-K** section, and say whether it changes the verdict.
+
+8. **Score the checklist and write the verdict** using the framework below.
+
+## Banks and insurers
+Industrial accounting screens don't apply to financial companies (`is_financial: true`); their balance sheets are funding and loans, not inventory and receivables. Run this instead:
+```bash
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 400000 > .earnings-desk/work/TICKER-er0.json
+grep -n -i -E "CET1|common equity tier 1|tier 1 leverage|SLR|supplementary leverage|LCR|liquidity coverage|net charge-off|allowance for (loan|credit) loss|nonperforming|provision for credit|net interest margin|combined ratio|reserve (development|releases)" .earnings-desk/work/TICKER-er0.json | head -60
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py filing-text TICKER --form 10-Q --section mdna --max-chars 400000 > .earnings-desk/work/TICKER-10q.json
+```
+**Banks:** CET1 and Tier 1 leverage vs. requirement (buffer in points), LCR, net charge-offs and NCO ratio trend, allowance as % of loans and reserve builds/releases, nonperforming assets, NIM trend, deposit mix and uninsured share, and unrealized losses on securities (AOCI/HTM).
+**Insurers:** combined ratio and prior-year reserve development, investment portfolio quality, statutory capital (RBC).
+Report layout: Capital → Liquidity → Credit quality → Earnings quality (reserve releases, one-offs) → Filing evidence → verdict. A distress question about a bank is answered by capital, liquidity and credit, never by Altman Z.
 
 ## Analysis framework
 Full formulas, thresholds, academic origins and 25 red flags with where to find each are in [references/forensic-playbook.md](references/forensic-playbook.md).
@@ -89,12 +109,12 @@ Full formulas, thresholds, academic origins and 25 red flags with where to find 
 | SBC % revenue | above 10% | Adjusted earnings materially flattered |
 
 **Known false positives (say so in the report):**
-- **Hyper-growth inflates Beneish.** SGI is weighted 0.892, so fast growers look "elevated" with nothing wrong. NVDA FY26 scored **−1.15 "elevated"**, driven by SGI 1.66 and AQI 1.52 (other long-term assets grew), plus TATA 0.084 (net income ahead of OCF in a hyper-growth year with a working capital build). DSRI was 1.01 and GMI 1.06, which is clean. Recompute the score with SGI set to 1.0 to see how much is growth alone: NVDA would be about −1.74, still close to the line, so explain the AQI and TATA drivers too.
+- **Hyper-growth inflates Beneish.** SGI is weighted 0.892, so a company growing sales 50%+ can land in the "elevated" zone with nothing wrong. Always recompute the score with SGI set to 1.0 (subtract 0.892 × (SGI − 1)) to see how much is growth alone. If it is still above −1.78, explain the remaining drivers: a high AQI usually means goodwill/intangibles or other long-term assets grew faster than total assets (check acquisitions and licensing deals), and a high TATA means net income ran ahead of operating cash flow (check the working-capital build). DSRI and GMI near 1.0 mean receivables and gross margin are clean.
 - **AQI** jumps after acquisitions (goodwill and intangibles), large prepaid or strategic investments, or capitalized cloud contracts. Check what "other" assets are.
-- **Altman Z original** explodes for mega-caps because X4 = market cap / liabilities (NVDA: X4 = 89). Z'' is the fairer read for non-manufacturers.
+- **Altman Z original** explodes for mega-caps because X4 = market cap / total liabilities can be 50–100+, swamping every other term. Z'' (book equity) is the fairer read for non-manufacturers.
 - **Piotroski** penalizes growth companies that issue shares and asset-heavy compounders whose margins have peaked. It was designed for cheap, high book-to-market stocks.
-- **Stock splits** can make "no dilution" fail and `share_count_yoy_pct` spike (NVDA FY23 reads +889%) when an older filing wasn't restated.
-- **Financials (SIC 60–67):** Beneish, Altman and Piotroski don't apply (`is_financial: true`). Use reserve adequacy, credit costs, CECL allowance trends, NCOs and capital ratios.
+- **Stock splits** can make "no dilution" fail and `share_count_yoy_pct` spike by hundreds of percent when an older filing wasn't restated. scores.py flags share-count moves over 50% as likely splits; confirm in the filing.
+- **Financials (SIC 60–67):** `scores.py` returns `available: false` for Beneish, Altman, Piotroski and Sloan when `is_financial` is true. Follow **Banks and insurers** below instead.
 - **Seasonal and 53-week years** distort DSO and DIO at fiscal year end.
 
 **Qualitative checklist** (score each Clean, Watch or Red, with evidence):
@@ -119,7 +139,7 @@ Full formulas, thresholds, academic origins and 25 red flags with where to find 
 Corroboration is the rule: a single screen is a hint, while a screen plus a matching filing fact is a finding.
 
 ## Output
-Write `/tmp/TICKER-forensic-accounting.json` per `../sec-edgar/references/report-schema.md`, `"skill": "forensic-accounting"`.
+Write `.earnings-desk/work/TICKER-forensic-accounting.json` per `../sec-edgar/references/report-schema.md`, `"skill": "forensic-accounting"`.
 
 - **title**: e.g. `"Scores look scary, the *filings don't*"` or `"Receivables are *outrunning* revenue"`.
 - **verdict**: `{"label": "Forensic verdict", "value": "Clean | Watch | Red flags", "sub": "<the top driver>", "tone": "pos|warn|neg"}`.
@@ -135,13 +155,13 @@ Write `/tmp/TICKER-forensic-accounting.json` per `../sec-edgar/references/report
 - **sources**: scores.py `sources` accessions, 10-K and 8-K accessions, press release exhibit URLs.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-forensic-accounting.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-forensic-accounting.json --out-dir earnings-desk-reports
 ```
 **In chat** give the verdict and top driver, a compact score table, any Red or Watch items with one line of evidence each, explicitly named false positives, and the report paths.
 
 ## Quality bar & pitfalls
 - **Never accuse.** Write "consistent with aggressive recognition" or "warrants scrutiny", not "fraud". Separate facts (cited) from inference (labeled).
-- **Explain every score's driver.** "M-score −1.15" alone is useless. "Elevated because sales grew 66% and other assets grew faster than total assets; receivables quality (DSRI 1.01) is clean" is the job.
+- **Explain every score's driver.** "M-score −1.6" alone is useless. "Elevated because sales grew 60% and other long-term assets grew faster than total assets; receivables quality (DSRI ≈ 1.0) is clean" is the job.
 - **Check `defaulted_to_1` and `missing`.** A Beneish score computed with DEPI or SGAI defaulted to 1.0 is less informative. Say so.
 - **Approximations in scores.py:** Piotroski's ROA uses prior-year total assets (not average), and "ROA improving" compares with prior net income / prior assets. Leverage uses long-term debt only. Beneish TATA uses net income − OCF over total assets. Disclose these when a check is borderline.
 - **One-year window.** Scores compare two fiscal years. A one-off year can mislead, so confirm with the multi-year trend.

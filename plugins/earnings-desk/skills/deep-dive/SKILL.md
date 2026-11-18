@@ -84,6 +84,7 @@ python3 $S/sec-edgar/scripts/render_report.py $RUN/pm/report.json --out-dir earn
 ```
 Fix any `warnings` (edit the JSON yourself; re-run). Update the README file index. Then reply in chat with:
 - **Research view, conviction**, and the probability-weighted value vs. price in one line, with "research view, not investment advice".
+- Put the source next to each key number in the chat reply itself (filing + accession, or `web: site, date`), not only in the report.
 - The 3-sentence executive summary, the key debates (one line each), and the kill criteria.
 - Paths: the HTML, the Markdown, and the run dir (all intermediate memos are there for audit).
 - **Offer:** "Save this thesis and its kill criteria with `/earnings-desk:thesis-tracker TICKER`?" Also suggest `earnings-preview` before the next print date.

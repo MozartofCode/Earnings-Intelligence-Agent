@@ -43,7 +43,7 @@ M = −4.84 + 0.920·DSRI + 0.528·GMI + 0.404·AQI + 0.892·SGI + 0.115·DEPI �
 
 **Interpretation:**
 - DSRI, AQI, DEPI and TATA are the manipulation-type drivers. SGI, GMI and LVGI are pressure-type drivers. A score driven by SGI alone describes a growth company, not a manipulator.
-- Always run the sensitivity: recompute with SGI = 1.0, i.e. subtract 0.892 × (SGI − 1). If the score drops below −1.78, growth explains the flag. For NVDA FY26, −1.15 becomes about −1.74, so AQI (1.52) and TATA (0.084) still need explaining.
+- Always run the sensitivity: recompute with SGI = 1.0, i.e. subtract 0.892 × (SGI − 1). If the score drops below −1.78, growth explains the flag. For example, a score of −1.20 with SGI 1.60 becomes about −1.74: still elevated, so the remaining drivers (often AQI and TATA) need explaining.
 - **Blind spots:** acquisitions (AQI, DSRI and SGI all jump), hyper-growth, business-model shifts (hardware to subscription), years with large one-offs. Not for financial firms.
 
 ## 2. Altman Z-score and Z''
@@ -95,7 +95,7 @@ M = −4.84 + 0.920·DSRI + 0.528·GMI + 0.404·AQI + 0.892·SGI + 0.115·DEPI �
 **Interpretation:**
 - Persistently high accruals predict earnings declines and underperformance.
 - Benign causes include rapid growth funded by working capital, an acquisition year, or a large tax receivable.
-- Look at several years. One year above 10% during hyper-growth (NVDA FY26: 10.9%) is less worrying than three years in a row in a flat business.
+- Look at several years. One year above 10% during hyper-growth (when a working-capital build explains it) is less worrying than three years in a row in a flat business.
 - Cross-check by hand with the balance-sheet version: (Δ non-cash working capital − D&A) / average assets.
 
 ## 5. Working-capital days

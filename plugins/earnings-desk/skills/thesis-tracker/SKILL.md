@@ -25,6 +25,10 @@ The most expensive mistake in investing is a thesis that quietly changes so you 
 - Update mode: optional trigger event ("Q3 print", "CEO left").
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 
@@ -97,7 +101,7 @@ The most expensive mistake in investing is a thesis that quietly changes so you 
    - **Sections:** *Thesis* (3 sentences in a blockquote); *Pillar scorecard* (table: pillar, KPI, baseline, latest, thresholds, status pill; plus `scores` bars showing distance to the "broken" threshold); *Kill criteria* (table: criterion, status, evidence; any hit is a `neg` callout at the top); *What changed* (sourced callouts); *Catalyst calendar* (table); *Conviction & next check*.
    - **Sources:** accessions and URLs for every KPI value, and the price source.
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-thesis-tracker.json --out-dir earnings-desk-reports
+   python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-thesis-tracker.json --out-dir earnings-desk-reports
    ```
 3. **In chat:** "Thesis: Under pressure. P2 (gross margin) is weakening at 66.8% vs. a 70% intact line; no kill criteria hit; conviction 4 → 3 proposed. Next check: Q4 print on DATE." Then give the thesis-file path and the report paths. Suggest committing `.earnings-desk/theses/` to git for an audit trail, but don't commit for the user.
 

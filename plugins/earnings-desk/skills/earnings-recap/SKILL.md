@@ -26,10 +26,15 @@ Headlines say "beat." Your job is to say whether it was a good quarter: how much
 - Data setup (SEC user agent, keys) is in `sec-edgar`.
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Pull the release.**
-   `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 150000 > /tmp/<TICKER>-er0.json`, then `grep`/`Read` that file instead of pulling it all into context. If `truncated` is true, raise `--max-chars`. The `exhibits` URLs are your citations. Extract: revenue, segment revenue, gross margin, operating income, GAAP and non-GAAP EPS, the GAAP→non-GAAP reconciliation, guidance (next quarter and full year), share count, cash flow, buybacks. Also pull the prior quarter's release (`--index 1`) for the **prior guide** and the year-ago one (`--index 4`) for comparisons.
+   `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER --max-chars 150000 > .earnings-desk/work/<TICKER>-er0.json`, then `grep`/`Read` that file instead of pulling it all into context. If `truncated` is true, raise `--max-chars`. The `exhibits` URLs are your citations. Extract: revenue, segment revenue, gross margin, operating income, GAAP and non-GAAP EPS, the GAAP→non-GAAP reconciliation, guidance (next quarter and full year), share count, cash flow, buybacks. Also pull the prior quarter's release (`--index 1`) for the **prior guide** and the year-ago one (`--index 4`) for comparisons.
+   **Many companies (Apple, Microsoft and others) give guidance only on the call, not in the release.** If the release has no outlook section, take the new and prior guides from the call transcript or cited coverage (web search: "<company> <quarter> guidance"), and label them `web: site, date`.
 2. **Cross-check with XBRL.**
    `python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --quarters 8` for y/y growth, margins, tax rate, DSO/DIO/DPO, cash conversion, share count. If the 10-Q is already filed, `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py facts TICKER --periods 8`. Releases come before the 10-Q, so XBRL for the newest quarter may lag by days; say so and use the release figures.
 3. **Consensus.** `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py estimates TICKER` and `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py surprises TICKER` (keys optional). Otherwise web search for the pre-print consensus (revenue, EPS, segment and KPI estimates if published) and cite site + date. Use the consensus **as of the print**, not revised post-print numbers.
@@ -59,14 +64,14 @@ Implied next-period guide: FY guide − YTD actual. Many "raises" imply a weaker
 
 ### 3. Quality of the beat (the core of this skill)
 Quantify each item as EPS cents and as % of the beat. Beat attribution = operating beat + tax + below-the-line + share count + other.
-- **Tax rate.** EPS effect = pretax income × (consensus or guided tax rate − actual rate) / diluted shares. A rate 3+ pts below the guide that provides > 25% of the beat is a low-quality beat.
+- **Tax rate.** EPS effect = pretax income × (benchmark rate − actual rate) / diluted shares. Benchmark, in order of preference: the company's guided rate, the consensus model's rate, then the average effective rate of the prior 3–4 quarters (`tax_rate_pct` in statements.py). Say which you used, because it can move the verdict. A rate 3+ pts below the benchmark that provides > 25% of the beat is a low-quality beat.
 - **Below-the-line items.** Interest income on cash piles, equity-method gains, mark-to-market on investments, FX gains, gains on sale. Non-operating income growing faster than operating income flags it.
 - **Share count.** EPS growth − net income growth ≈ buyback contribution. Fine, but it is capital allocation, not operations.
 - **Non-GAAP adjustments.** Track the GAAP-to-adjusted gap over 4-8 quarters. Red flags: new add-back categories, "restructuring" every year, SBC above 15% of revenue excluded, acquisition costs on serial acquirers. Gap growing > 5 pts of EPS = weakening quality.
 - **Pull-forward / one-offs.** Price increases announced for next quarter (customers pre-buy), large single deals, license revenue timing, extra week (53-week years), channel fill, catch-up billing, reserve releases, insurance recoveries, one-time government or customer payments.
 - **Working capital.** DSO up > 10% q/q or receivables growth > revenue growth + 10 pts = possible end-of-quarter push or loosened terms. Inventory growth > COGS growth + 10 pts = demand risk or a coming gross-margin hit. DPO stretch inflating OCF is not durable.
 - **Reserves and accruals.** Lower allowance for doubtful accounts, warranty reserve, or returns reserve as % of revenue. Capitalized software or contract costs rising faster than revenue.
-- **Cash conversion.** OCF/net income < 0.8 for two quarters while EPS beats = earnings ahead of cash.
+- **Cash conversion.** `ocf_to_ni` (operating cash flow / net income) < 0.8 for two quarters while EPS beats = earnings ahead of cash. statements.py's `cash_conversion` is FCF / net income, a stricter measure that also absorbs capex.
 - **Deferred revenue / RPO.** For subscription models: billings (revenue + Δdeferred revenue) slowing while revenue beats means future revenue is being pulled forward.
 - **Organic vs. reported.** Strip M&A and FX (constant-currency figures from the release).
 
@@ -85,7 +90,7 @@ List each pillar of the bull and bear case and mark it strengthened / unchanged 
 - **Weak:** miss on revenue or swing KPI, guide cut or below consensus, or > 50% of the beat from non-operating/one-off items.
 
 ## Output
-Write `/tmp/<TICKER>-earnings-recap.json` per `../sec-edgar/references/report-schema.md`.
+Write `.earnings-desk/work/<TICKER>-earnings-recap.json` per `../sec-edgar/references/report-schema.md`.
 - `skill`: `"earnings-recap"`; `title` e.g. `"A *low-quality* beat"` or `"Beat, raise, and *the cash agrees*"`; `subtitle`: "Q3 FY26 results · reported Oct 28, 2026".
 - `verdict`: `{label: "Print quality", value: "Strong | Mixed | Weak", sub: "e.g. Beat + raise, 90% operational", tone: pos | warn | neg}`.
 - `kpis` (4-6): Revenue (y/y and vs. cons.), EPS (vs. cons.), Swing KPI, Guide midpoint vs. cons., Operational share of beat, Stock reaction vs. avg move.
@@ -100,7 +105,7 @@ Write `/tmp/<TICKER>-earnings-recap.json` per `../sec-edgar/references/report-sc
 
 Render:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-earnings-recap.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/<TICKER>-earnings-recap.json --out-dir earnings-desk-reports
 ```
 Fix warnings. In chat, print: verdict, the three-line scorecard (revenue, EPS, guide vs. cons.), the biggest quality flag, and the HTML + Markdown paths.
 

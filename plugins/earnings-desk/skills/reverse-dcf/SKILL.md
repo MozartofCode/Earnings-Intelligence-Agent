@@ -21,9 +21,13 @@ Don't guess fair value first. Start from the price, back out the future it impli
 - For relative value against peers, use `comps-valuation`. For the qualitative case behind a growth rate, use `moat-analysis`.
 
 ## Inputs
-- `TICKER` (required). Optional: `--price` (pass a cited price whenever you have one), `--wacc` (default 9), `--terminal-growth` (default 3), `--years` (default 10), `--growth` (your base-case year-1 revenue growth, %), `--target-margin` (FCF margin reached by year 5, %; default is today's TTM margin), `--sbc-ignore` (default deducts SBC from FCF).
+- `TICKER` (required). Optional: `--price` (pass a cited price whenever you have one; if the user names a hypothetical price, e.g. "at $500", use it and also state today's quoted price), `--wacc` (default 9), `--terminal-growth` (default 3), `--years` (default 10), `--growth` (your base-case year-1 revenue growth, %), `--target-margin` (FCF margin reached by year 5, %; default is today's TTM margin), `--sbc-ignore` (default deducts SBC from FCF).
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 Scripts live in `scripts/`. Shared data tools live at `../sec-edgar/scripts/`.
@@ -32,7 +36,7 @@ Scripts live in `scripts/`. Shared data tools live at `../sec-edgar/scripts/`.
 2. **History, the reality check.** `python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 10 --quarters 8`. Pull revenue CAGR over 3, 5 and 10 years (as far as data goes), the FCF margin range (min, max, median), SBC % of revenue, ROIC trend and share-count drift. Ask whether this is a steady compounder, a cyclical, or a company that has just inflected.
 3. **Reverse DCF.** Hold margins at today's level first:
    `python3 ${CLAUDE_SKILL_DIR}/scripts/dcf.py TICKER --price P --wacc W`
-   Read `reverse.implied_year1_growth_pct`, which is the year-1 growth that, fading linearly to terminal growth over `--years`, justifies the price. **It is not a CAGR.** Compute the implied 10-year revenue CAGR from the base projection: `(revenue_y10 / revenue_ttm)^(1/10) - 1`. That CAGR is the number to compare with history and base rates.
+   Read `reverse.implied_10y_revenue_cagr_pct`: the compound annual revenue growth over the horizon that justifies the price (also `implied_revenue_multiple_vs_today`, e.g. 3.2× revenue in 10 years). That CAGR is the number to compare with history and base rates. `implied_year1_growth_pct` is only the starting point of a linear fade to terminal growth, so don't quote it as "the growth priced in".
    Then read `reverse.implied_target_fcf_margin_pct`, the year-5 FCF margin needed if growth runs at `--growth` (or 10% when `--growth` is omitted). Also note `implied_fcf_yield_pct` (TTM FCF / market cap).
 4. **Gather the expectation benchmarks.** Get guidance from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/edgar.py earnings-release TICKER` (outlook section) and consensus from `python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/market.py estimates TICKER` (needs a key; otherwise web search, cited). Put implied vs. history vs. guidance vs. consensus vs. base rate in one table.
 5. **Your own scenarios.** Run dcf.py once per scenario with **explicit drivers**, so each case says exactly what you believe:
@@ -45,10 +49,12 @@ Scripts live in `scripts/`. Shared data tools live at `../sec-edgar/scripts/`.
 6. **Sensitivity.** The JSON has `sensitivity_value_per_share` (WACC ± 2 pts × terminal growth ± 1 pt). Add a growth × margin grid, because that's usually where the debate lives:
    ```bash
    for g in 5 10 15 20 25; do for m in 20 25 30 35; do
-     python3 ${CLAUDE_SKILL_DIR}/scripts/dcf.py TICKER --price P --growth $g --target-margin $m \
-       | python3 -c "import json,sys; d=json.load(sys.stdin); print($g, $m, d['scenarios']['base']['value_per_share'])"
+     python3 ${CLAUDE_SKILL_DIR}/scripts/dcf.py TICKER --price P --growth "$g" --target-margin "$m" \
+       | python3 -c "import json,sys; d=json.load(sys.stdin); b=d['scenarios']['base']; print(sys.argv[1], sys.argv[2], b['value_per_share'], b['revenue_cagr_10y_pct'])" "$g" "$m"
    done; done
    ```
+   Pass each flag and value as separate literal words, as above. Don't store several flags in one shell variable: zsh (the macOS default) won't split it and dcf.py will see one malformed argument.
+
 7. **Sanity-check the terminal value.** Check `terminal_share_of_value_pct` and the implied exit multiple (see the framework below). If either looks absurd, fix the inputs before writing anything.
 8. **Weigh it and write it up.** Assign probabilities to bear/base/bull (they must sum to 100%), compute the probability-weighted value, and render the report.
 
@@ -100,7 +106,7 @@ Write the report JSON per [../sec-edgar/references/report-schema.md](../sec-edga
 
 Render:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/TICKER-reverse-dcf.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/TICKER-reverse-dcf.json --out-dir earnings-desk-reports
 ```
 **In chat:** two or three sentences, for example: "At $P the market is pricing in about X% revenue CAGR for 10 years at Y% FCF margins, above the company's 5-yr record of Z%. Probability-weighted value is $V (±N%). The decisive variable is margin." Then give the report paths and next steps.
 

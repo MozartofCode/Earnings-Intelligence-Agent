@@ -25,10 +25,14 @@ The press release is lawyered. The prepared remarks are rehearsed. The Q&A is wh
 - `compare` (optional): number of prior calls to compare (default 1, max 4).
 
 > **Paths:** `${CLAUDE_SKILL_DIR}` is this skill's own folder. Claude Code fills it in automatically; in other tools, replace it with the folder that contains this `SKILL.md`. Sibling skills such as `${CLAUDE_SKILL_DIR}/../sec-edgar` are installed next to it.
+>
+> **Working files:** save intermediate JSON and the report JSON in `.earnings-desk/work/` inside the user's current folder (`mkdir -p .earnings-desk/work` first); finished reports go to `earnings-desk-reports/`.
+>
+> **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
 1. **Get the transcript(s).** In this order:
-   - User-provided file or text. Save pasted text to `/tmp/<TICKER>-<Q>-transcript.txt`.
+   - User-provided file or text. Save pasted text to `.earnings-desk/work/<TICKER>-<Q>-transcript.txt`.
    - Company IR site (many post PDFs or webcast transcripts). Web search "<company> Q3 2026 earnings call transcript" and prefer IR, then reputable free sources. Cite the URL and retrieval date.
    - FMP with `FMP_API_KEY`: `https://financialmodelingprep.com/stable/earning-call-transcript?symbol=TICKER&year=YYYY&quarter=Q&apikey=$FMP_API_KEY` (fetch with WebFetch or curl; never echo the key).
    - If no full transcript is reachable, say so. Work from what is available (news summaries, prepared remarks only) and **label the analysis partial**. Never reconstruct quotes from memory.
@@ -77,7 +81,7 @@ Call-level score 0-100: < 20 forthcoming, 20-40 normal, 40-60 guarded, > 60 evas
 - **Defensive:** evasiveness > 60, tone down sharply, attack-the-premise answers, or dropped key metrics.
 
 ## Output
-Write `/tmp/<TICKER>-transcript-decoder.json` per `../sec-edgar/references/report-schema.md`.
+Write `.earnings-desk/work/<TICKER>-transcript-decoder.json` per `../sec-edgar/references/report-schema.md`.
 - `skill`: `"transcript-decoder"`; `title` e.g. `"Confident script, *guarded* Q&A"`; `subtitle`: "Q3 FY26 earnings call · Oct 28, 2026 · vs. Q2 FY26".
 - `verdict`: `{label: "Call tone", value: "Confident | Steady | Guarded | Defensive", sub: "e.g. Evasiveness 47/100", tone: pos | neutral | warn | neg}`.
 - `kpis` (4-6): Evasiveness score (and q/q), Uncertainty per 1k (q/q %), Net tone Q&A (q/q), Top pushback theme, # analysts on top theme, New vs. dropped topics count.
@@ -93,7 +97,7 @@ Write `/tmp/<TICKER>-transcript-decoder.json` per `../sec-edgar/references/repor
 
 Render:
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py /tmp/<TICKER>-transcript-decoder.json --out-dir earnings-desk-reports
+python3 ${CLAUDE_SKILL_DIR}/../sec-edgar/scripts/render_report.py .earnings-desk/work/<TICKER>-transcript-decoder.json --out-dir earnings-desk-reports
 ```
 Fix warnings. In chat: verdict, evasiveness score, the most important dropped or new topic, one quote, and the HTML + Markdown paths.
 
