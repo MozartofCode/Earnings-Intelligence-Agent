@@ -149,20 +149,29 @@ def main():
     trend = [{"fy_end": r["period_end"], "dso": r["dso"], "dio": r["dio"], "dpo": r["dpo"], "cash_conversion": r["cash_conversion"],
               "sbc_pct_rev": r["sbc_pct_rev"], "gross_margin_pct": r["gross_margin_pct"], "share_count_yoy_pct": r.get("share_count_yoy_pct")} for r in rows[-5:]]
     flags = []
-    if trend[-1]["dso"] and trend[0]["dso"] and trend[-1]["dso"] > trend[0]["dso"] * 1.2:
-        flags.append("DSO up >20% over the window: receivables growing faster than sales")
-    if trend[-1]["dio"] and trend[0]["dio"] and trend[-1]["dio"] > trend[0]["dio"] * 1.2:
-        flags.append("DIO up >20%: inventory building faster than cost of sales")
+    win = "%s→%s" % (trend[0]["fy_end"][:4], trend[-1]["fy_end"][:4])
+    def drift(k, label):
+        a, b = trend[0][k], trend[-1][k]
+        if a and b and b > a * 1.2:
+            yoy = trend[-2][k] if len(trend) > 1 else None
+            one = (" (last year: %+.0f%%)" % ((b / yoy - 1) * 100)) if yoy else ""
+            flags.append("%s up %.0f%% over FY%s%s: %s" % (k.upper(), (b / a - 1) * 100, win, one, label))
+    drift("dso", "receivables growing faster than sales")
+    drift("dio", "inventory building faster than cost of sales")
     if t["cash_conversion"] is not None and t["cash_conversion"] < 0.8:
         flags.append("Cash conversion (FCF/NI) below 0.8 in the latest year")
     if t["sbc_pct_rev"] and t["sbc_pct_rev"] > 10:
         flags.append("SBC above 10% of revenue: GAAP vs. adjusted earnings gap likely large")
+    na = {"available": False, "reason": "not designed for banks/insurers (SIC %s)" % sic}
+    if financial:
+        flags = []
     out = dict(co, fiscal_year=t["period_end"], prior_year=pr["period_end"], sic=sic, is_financial=financial,
-               beneish=beneish(t, pr), altman=altman(t, a.market_cap, manufacturer), piotroski=piotroski(t, pr), sloan=sloan(t, pr),
+               beneish=na if financial else beneish(t, pr), altman=na if financial else altman(t, a.market_cap, manufacturer),
+               piotroski=na if financial else piotroski(t, pr), sloan=na if financial else sloan(t, pr),
                working_capital_trend=trend, quick_flags=flags,
                caveats=(["Financial company (SIC %s): Beneish, Altman and Piotroski are not designed for banks/insurers. Use credit-quality, reserve and capital metrics instead." % sic] if financial else []) +
                        ["Scores flag where to dig, not conclusions. Confirm in the 10-K notes (revenue recognition, reserves, capitalization policies)."],
-               sources=[t.get("accn"), pr.get("accn")])
+               sources=sorted(set(x for x in (t.get("accn"), pr.get("accn")) if x)))
     print(json.dumps(out, indent=2, default=str))
 
 

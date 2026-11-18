@@ -2,7 +2,7 @@
 """Redline a 10-K/10-Q section against the prior filing. Stdlib only.
 
 Usage
-  python3 diff_sections.py TICKER [--form 10-K] [--section 1A] [--new 0] [--old 1] [--max-items 40]
+  python3 diff_sections.py TICKER [--form 10-K] [--section 1A] [--new 0] [--old 1] [--max-items 80]
   python3 diff_sections.py --files old.txt new.txt
 
 Sections: 1A (risk factors), 7 / mdna (MD&A), 1 (business), 3 (legal), 7a, 9a, or any heading text.
@@ -128,7 +128,7 @@ def main():
     p.add_argument("--section", default="1A")
     p.add_argument("--new", type=int, default=0, help="index of the newer filing (0 = latest)")
     p.add_argument("--old", type=int, default=1, help="index of the older filing")
-    p.add_argument("--max-items", type=int, default=40)
+    p.add_argument("--max-items", type=int, default=80)
     p.add_argument("--new-accession", help="exact accession for the newer filing (overrides --new)")
     p.add_argument("--old-accession", help="exact accession for the older filing (overrides --old)")
     p.add_argument("--files", nargs=2, metavar=("OLD", "NEW"))
@@ -147,7 +147,8 @@ def main():
             edgar.die("Section '%s' not found in one of the filings. Try --section with the exact heading text, or read saved_to files directly." % a.section,
                       new_saved_to=n["saved_to"], old_saved_to=o["saved_to"])
         new, old = n["text"], o["text"]
-        meta = dict(co, form=a.form, section=a.section, new_filing=n["filing"], old_filing=o["filing"])
+        meta = dict(co, form=a.form, section=a.section, new_filing=n["filing"], old_filing=o["filing"],
+                    new_saved_to=n["saved_to"], old_saved_to=o["saved_to"])
     out = dict(meta, **diff(old, new, a.max_items))
     print(json.dumps(out, indent=2, default=str))
 

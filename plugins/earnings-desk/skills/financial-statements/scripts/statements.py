@@ -63,7 +63,7 @@ def build_rows(facts, which):
     rows = []
     for r in spine:
         end = r["end"]
-        row = {"period_end": end, "fy": r.get("fy")}
+        row = {"period_end": end, "fy": int(end[:4])}
         for m in flows + stocks:
             row[m] = nearest(idx[m], end)
         if row["gross_profit"] is None and row["revenue"] is not None and row["cost_of_revenue"] is not None:
@@ -92,7 +92,8 @@ def enrich(rows, periods_per_year):
         r["rnd_pct_rev"] = pct(div(r["rnd"], rev))
         r["sbc_pct_rev"] = pct(div(r["sbc"], rev))
         r["capex_pct_rev"] = pct(div(r["capex"], rev))
-        r["cash_conversion"] = r2(div(fcf, r["net_income"]))
+        r["cash_conversion"] = r2(div(fcf, r["net_income"]))          # FCF / net income
+        r["ocf_to_ni"] = r2(div(r["operating_cash_flow"], r["net_income"]))  # operating cash flow / net income
         r["tax_rate_pct"] = pct(div(r["income_tax"], r["pretax_income"]))
         r["current_ratio"] = r2(div(r["current_assets"], r["current_liabilities"]))
         r["interest_coverage"] = r2(div(r["operating_income"], r["interest_expense"]))
@@ -109,7 +110,9 @@ def enrich(rows, periods_per_year):
             avg_eq = div((r["equity"] or 0) + (prev["equity"] or 0), 2)
             r["roe_pct"] = pct(div(r["net_income"] * ann if r["net_income"] is not None else None, avg_eq)) if avg_eq and avg_eq > 0 else None
             nopat = None if r["operating_income"] is None else r["operating_income"] * (1 - min(max((div(r["income_tax"], r["pretax_income"]) or 0.21), 0), 0.35))
-            ic = lambda x: (x["equity"] or 0) + (x["total_debt"] or 0) - ((x["cash"] or 0) + (x["short_term_investments"] or 0))
+            # Invested capital = equity + debt. Cash is NOT subtracted: for cash-rich
+            # companies that makes the denominator tiny and ROIC meaningless.
+            ic = lambda x: (x["equity"] or 0) + (x["total_debt"] or 0)
             avg_ic = div(ic(r) + ic(prev), 2)
             r["roic_pct"] = pct(div(nopat * ann if nopat is not None else None, avg_ic)) if avg_ic and avg_ic > 0 else None
         # Growth vs. one year earlier
@@ -155,7 +158,14 @@ def main():
                missing_metrics=[m for m in edgar.METRICS if m not in facts["tags_used"]],
                sources=sorted(set(r["accn"] for r in annual[-a.years:] + quarterly[-a.quarters:] if r.get("accn"))),
                notes=["Quarters flagged derived_quarter=true were computed as FY or YTD minus prior periods (EDGAR reports cash flows year-to-date).",
-                      "FCF = operating cash flow - capex. ROIC uses NOPAT on average (equity + debt - cash). Verify unusual values against the filing."])
+                      "fy = calendar year in which the fiscal period ends (e.g. NVDA FY26 ends Jan 2026 -> 2026). A few retailers name their year after the prior calendar year; check the 10-K cover.",
+                      "FCF = operating cash flow - capex. cash_conversion = FCF / net income; ocf_to_ni = operating cash flow / net income.",
+                      "ROIC = NOPAT / average (equity + total debt); cash is not subtracted. Verify unusual values against the filing."])
+    sic = str(edgar.submissions(co["cik"]).get("sic") or "")
+    if sic[:2] in ("60", "61", "62", "63", "64", "67"):
+        out["is_financial"] = True
+        out["notes"].append("Financial company (SIC %s): debt, net debt, gross margin, working-capital days, FCF and ROIC are not meaningful for banks/insurers "
+                            "(deposits and funding sit outside these tags). Use capital ratios, credit costs, NIM/combined ratio and book value instead." % sic)
     print(json.dumps(out, indent=2, default=str))
 
 

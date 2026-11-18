@@ -46,6 +46,14 @@ def project(rev0, m0, g1, gT, m_target, years, wacc, ramp=5):
     return pv + pv_tv, pv_tv, rows
 
 
+def cagr(g1, gT, years):
+    """Compound annual revenue growth over the horizon when growth fades linearly from g1 to gT."""
+    f = 1.0
+    for y in range(1, years + 1):
+        f *= 1 + (g1 + (gT - g1) * (y - 1) / max(years - 1, 1))
+    return f ** (1.0 / years) - 1, f
+
+
 def per_share(ev_pv, net_debt, shares):
     return (ev_pv - net_debt) / shares
 
@@ -135,7 +143,8 @@ def main():
         mt = m_target * (1 + dm)
         ev, pv_tv, rows = project(rev0, m0, g1, gT, mt, N, wacc)
         ps = per_share(ev, nd, sh)
-        scenarios[name] = {"year1_growth_pct": round(g1 * 100, 2), "target_fcf_margin_pct": round(mt * 100, 2), "value_per_share": round(ps, 2),
+        scenarios[name] = {"year1_growth_pct": round(g1 * 100, 2), "revenue_cagr_10y_pct": round(cagr(g1, gT, N)[0] * 100, 2),
+                           "target_fcf_margin_pct": round(mt * 100, 2), "value_per_share": round(ps, 2),
                            "upside_pct": round((ps / price - 1) * 100, 1), "terminal_share_of_value_pct": round(pv_tv / ev * 100, 1) if ev else None}
         if name == "base":
             scenarios[name]["projection"] = rows
@@ -159,9 +168,13 @@ def main():
                        current_fcf_margin_pct=round(m0 * 100, 2), target_fcf_margin_pct=round(m_target * 100, 2)),
         "reverse": {
             "implied_year1_growth_pct": None if implied_g is None else round(implied_g * 100, 2),
+            "implied_10y_revenue_cagr_pct": None if implied_g is None else round(cagr(implied_g, gT, N)[0] * 100, 2),
+            "implied_year10_revenue": None if implied_g is None else round(rev0 * cagr(implied_g, gT, N)[1]),
+            "implied_revenue_multiple_vs_today": None if implied_g is None else round(cagr(implied_g, gT, N)[1], 2),
             "implied_growth_holding_margin_pct": round(m_target * 100, 2),
             "implied_target_fcf_margin_pct": None if implied_m is None else round(implied_m * 100, 2),
             "implied_margin_holding_growth_pct": a.growth if a.growth is not None else 10.0,
+            "implied_margin_note": "implied_target_fcf_margin_pct is solved holding year-1 growth at implied_margin_holding_growth_pct (pass --growth to set it).",
             "implied_fcf_yield_pct": round(inp["fcf_margin"] * rev0 / mcap * 100, 2),
             "read": "Year-1 growth fades linearly to terminal growth. Compare implied numbers with history and guidance: is the market asking for more than the company has ever delivered?",
         },

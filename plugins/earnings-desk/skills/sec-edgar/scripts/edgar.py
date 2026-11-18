@@ -20,7 +20,7 @@ Commands
                     [--accession 0000320193-26-000024] [--include-amendments]
                                    Download a filing's primary document as plain text
                                    (amendments are skipped in --index unless asked for)
-  earnings-release TICKER [--index 0] [--max-chars 40000]
+  earnings-release TICKER [--index 0] [--max-chars 150000]
                                    Latest 8-K Item 2.02 press release (Exhibit 99.x) text
   insiders TICKER [--days 180] [--limit 40]
                                    Parsed Form 4 insider transactions
@@ -125,27 +125,42 @@ def submissions(cik):
     return fetch_json("https://data.sec.gov/submissions/CIK%s.json" % cik10(cik), ttl_hours=6)
 
 
-def recent_filings(cik, forms=None, limit=20):
-    sub = submissions(cik)
-    r = sub["filings"]["recent"]
-    rows = []
-    for i in range(len(r["accessionNumber"])):
-        form = r["form"][i]
+def _rows_from(block, cik, forms, rows, limit):
+    for i in range(len(block["accessionNumber"])):
+        form = block["form"][i]
         if forms and form not in forms:
             continue
-        acc = r["accessionNumber"][i]
-        doc = r["primaryDocument"][i]
+        acc = block["accessionNumber"][i]
+        doc = block["primaryDocument"][i]
         rows.append({
             "form": form,
-            "filed": r["filingDate"][i],
-            "period": r["reportDate"][i],
+            "filed": block["filingDate"][i],
+            "period": block["reportDate"][i],
             "accession": acc,
-            "items": r.get("items", [""] * len(r["form"]))[i],
+            "items": (block.get("items") or [""] * len(block["form"]))[i],
             "primary_doc": doc,
             "url": "https://www.sec.gov/Archives/edgar/data/%d/%s/%s" % (int(cik), acc.replace("-", ""), doc),
             "index_url": "https://www.sec.gov/Archives/edgar/data/%d/%s/" % (int(cik), acc.replace("-", "")),
         })
         if len(rows) >= limit:
+            return True
+    return False
+
+
+def recent_filings(cik, forms=None, limit=20):
+    """Newest-first filings. EDGAR's 'recent' block holds ~1,000 filings, which
+    covers only months for heavy filers (big banks), so older pages listed in
+    filings.files are read too until `limit` matches are found."""
+    sub = submissions(cik)
+    rows = []
+    if _rows_from(sub["filings"]["recent"], cik, forms, rows, limit):
+        return rows
+    for page in sub["filings"].get("files", []):
+        try:
+            block = fetch_json("https://data.sec.gov/submissions/" + page["name"], ttl_hours=24 * 7)
+        except urllib.error.HTTPError:
+            break
+        if _rows_from(block, cik, forms, rows, limit):
             break
     return rows
 
@@ -301,7 +316,7 @@ def build_facts(cik, n_quarters=12, n_years=6):
             out["annual"][metric] = [{"end": r["end"], "val": r["val"], "accn": r["accn"]} for r in a]
             out["quarterly"][metric] = [{"end": r["end"], "val": r["val"], "accn": r["accn"]} for r in q][-n_quarters:]
         else:
-            out["annual"][metric] = [{"end": r["end"], "fy": r.get("fy"), "val": r["val"], "accn": r["accn"]} for r in a][-n_years:]
+            out["annual"][metric] = [{"end": r["end"], "fy": int(r["end"][:4]), "val": r["val"], "accn": r["accn"]} for r in a][-n_years:]
             out["quarterly"][metric] = [{"end": r["end"], "val": r["val"], "accn": r["accn"], "derived": bool(r.get("derived"))} for r in q][-n_quarters:]
     # Trim instant annual series to fiscal-year-end dates seen in flow metrics
     fy_ends = set()
@@ -439,7 +454,7 @@ def exhibit_docs(cik, row, type_prefix):
     return docs
 
 
-def earnings_release(cik, index=0, max_chars=40000):
+def earnings_release(cik, index=0, max_chars=150000):
     rows = [r for r in recent_filings(cik, {"8-K"}, limit=200) if "2.02" in (r.get("items") or "")]
     if len(rows) <= index:
         die("No 8-K with Item 2.02 (results of operations) found at index %d" % index)
@@ -450,7 +465,7 @@ def earnings_release(cik, index=0, max_chars=40000):
     for name in docs[:2]:
         url = row["index_url"] + name
         texts.append({"doc": name, "url": url, "text": _Strip.text(fetch(url, ttl_hours=24 * 30))})
-    joined = "\n\n".join(t["text"] for t in texts)
+    joined = "\n\n".join("===== EXHIBIT: %s =====\n%s" % (t["doc"], t["text"]) for t in texts)
     return {"filing": row, "exhibits": [{"doc": t["doc"], "url": t["url"]} for t in texts], "truncated": len(joined) > max_chars, "text": joined[:max_chars]}
 
 
@@ -562,7 +577,7 @@ def main(argv=None):
     t.add_argument("--section"); t.add_argument("--max-chars", type=int, default=60000)
     t.add_argument("--accession", help="exact accession number (overrides --form/--index)")
     t.add_argument("--include-amendments", action="store_true", help="count 10-K/A, 10-Q/A in --index")
-    e = sp.add_parser("earnings-release"); e.add_argument("ticker"); e.add_argument("--index", type=int, default=0); e.add_argument("--max-chars", type=int, default=40000)
+    e = sp.add_parser("earnings-release"); e.add_argument("ticker"); e.add_argument("--index", type=int, default=0); e.add_argument("--max-chars", type=int, default=150000)
     i = sp.add_parser("insiders"); i.add_argument("ticker"); i.add_argument("--days", type=int, default=180); i.add_argument("--limit", type=int, default=40)
     pe = sp.add_parser("peers"); pe.add_argument("ticker"); pe.add_argument("--limit", type=int, default=15)
     a = p.parse_args(argv)
