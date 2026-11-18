@@ -119,6 +119,8 @@ def enrich(rows, periods_per_year):
                 base = yago.get(m)
                 r[m + "_yoy_pct"] = pct(div((r[m] - base) if r.get(m) is not None and base is not None else None, abs(base) if base else None))
             r["share_count_yoy_pct"] = pct(div((r["shares_diluted"] - yago["shares_diluted"]) if r["shares_diluted"] and yago["shares_diluted"] else None, yago["shares_diluted"]))
+            if r["share_count_yoy_pct"] is not None and abs(r["share_count_yoy_pct"]) > 50:
+                r["share_count_note"] = "share count moved >50% y/y: likely a stock split not restated in older filings"
     return rows
 
 

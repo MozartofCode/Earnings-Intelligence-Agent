@@ -17,7 +17,9 @@ Commands
   concept TICKER TAG [--taxonomy us-gaap]
                                    Raw XBRL facts for one tag
   filing-text TICKER [--form 10-K] [--index 0] [--section "1A"] [--max-chars 60000]
+                    [--accession 0000320193-26-000024] [--include-amendments]
                                    Download a filing's primary document as plain text
+                                   (amendments are skipped in --index unless asked for)
   earnings-release TICKER [--index 0] [--max-chars 40000]
                                    Latest 8-K Item 2.02 press release (Exhibit 99.x) text
   insiders TICKER [--days 180] [--limit 40]
@@ -372,12 +374,22 @@ def extract_section(text, section):
     return text[best[0]:best[1]].strip()
 
 
-def filing_text(cik, form, index, section=None, max_chars=60000):
-    forms = [form, form + "/A"] if not form.endswith("/A") else [form]
-    rows = [r for r in recent_filings(cik, set(forms), limit=index + 1)]
-    if len(rows) <= index:
-        die("No %s filing at index %d for CIK %s" % (form, index, cik))
-    row = rows[index]
+def filing_text(cik, form, index, section=None, max_chars=60000, accession=None, include_amendments=False):
+    """Plain text of one filing. Amendments (e.g. Part III-only 10-K/A) are
+    excluded from the index count unless include_amendments=True or the form
+    itself ends in /A. Pass accession to pick an exact filing."""
+    if accession:
+        rows = [r for r in recent_filings(cik, None, limit=1000) if r["accession"] == accession]
+        if not rows:
+            die("Accession %s not found in this company's recent filings" % accession)
+        row = rows[0]
+    else:
+        forms = [form, form + "/A"] if include_amendments and not form.endswith("/A") else [form]
+        rows = recent_filings(cik, set(forms), limit=index + 1)
+        if len(rows) <= index:
+            die("No %s filing at index %d for CIK %s" % (form, index, cik))
+        row = rows[index]
+    form = row["form"]
     raw = fetch(row["url"], ttl_hours=24 * 30)
     text = _Strip.text(raw)
     os.makedirs(os.path.join(CACHE_DIR, "text"), exist_ok=True)
@@ -548,6 +560,8 @@ def main(argv=None):
     c = sp.add_parser("concept"); c.add_argument("ticker"); c.add_argument("tag"); c.add_argument("--taxonomy", default="us-gaap")
     t = sp.add_parser("filing-text"); t.add_argument("ticker"); t.add_argument("--form", default="10-K"); t.add_argument("--index", type=int, default=0)
     t.add_argument("--section"); t.add_argument("--max-chars", type=int, default=60000)
+    t.add_argument("--accession", help="exact accession number (overrides --form/--index)")
+    t.add_argument("--include-amendments", action="store_true", help="count 10-K/A, 10-Q/A in --index")
     e = sp.add_parser("earnings-release"); e.add_argument("ticker"); e.add_argument("--index", type=int, default=0); e.add_argument("--max-chars", type=int, default=40000)
     i = sp.add_parser("insiders"); i.add_argument("ticker"); i.add_argument("--days", type=int, default=180); i.add_argument("--limit", type=int, default=40)
     pe = sp.add_parser("peers"); pe.add_argument("ticker"); pe.add_argument("--limit", type=int, default=15)
@@ -575,7 +589,7 @@ def main(argv=None):
         except urllib.error.HTTPError:
             die("Tag %s:%s not reported by %s" % (a.taxonomy, a.tag, co["ticker"]))
     elif a.cmd == "filing-text":
-        out = dict(co, **filing_text(cik, a.form, a.index, a.section, a.max_chars))
+        out = dict(co, **filing_text(cik, a.form, a.index, a.section, a.max_chars, a.accession, a.include_amendments))
     elif a.cmd == "earnings-release":
         out = dict(co, **earnings_release(cik, a.index, a.max_chars))
     elif a.cmd == "insiders":

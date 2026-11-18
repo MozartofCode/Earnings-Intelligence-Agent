@@ -129,6 +129,8 @@ def main():
     p.add_argument("--new", type=int, default=0, help="index of the newer filing (0 = latest)")
     p.add_argument("--old", type=int, default=1, help="index of the older filing")
     p.add_argument("--max-items", type=int, default=40)
+    p.add_argument("--new-accession", help="exact accession for the newer filing (overrides --new)")
+    p.add_argument("--old-accession", help="exact accession for the older filing (overrides --old)")
     p.add_argument("--files", nargs=2, metavar=("OLD", "NEW"))
     a = p.parse_args()
     if a.files:
@@ -139,8 +141,8 @@ def main():
             p.error("TICKER or --files required")
         import edgar
         co = edgar.resolve(a.ticker)
-        n = edgar.filing_text(co["cik"], a.form, a.new, a.section, max_chars=10 ** 7)
-        o = edgar.filing_text(co["cik"], a.form, a.old, a.section, max_chars=10 ** 7)
+        n = edgar.filing_text(co["cik"], a.form, a.new, a.section, max_chars=10 ** 7, accession=a.new_accession)
+        o = edgar.filing_text(co["cik"], a.form, a.old, a.section, max_chars=10 ** 7, accession=a.old_accession)
         if not n["section_found"] or not o["section_found"]:
             edgar.die("Section '%s' not found in one of the filings. Try --section with the exact heading text, or read saved_to files directly." % a.section,
                       new_saved_to=n["saved_to"], old_saved_to=o["saved_to"])

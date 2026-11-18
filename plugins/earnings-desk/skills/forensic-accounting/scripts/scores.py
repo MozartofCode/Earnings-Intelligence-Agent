@@ -110,13 +110,16 @@ def piotroski(t, p):
     checks["5 Leverage falling"] = lev(t) is not None and lev(p) is not None and lev(t) <= lev(p)
     cr = lambda x: d(x["current_assets"], x["current_liabilities"])
     checks["6 Current ratio rising"] = cr(t) is not None and cr(p) is not None and cr(t) > cr(p)
-    checks["7 No dilution"] = t.get("shares_diluted") is not None and p.get("shares_diluted") is not None and t["shares_diluted"] <= p["shares_diluted"] * 1.005
+    ratio = d(t.get("shares_diluted"), p.get("shares_diluted"))
+    split_suspect = ratio is not None and (ratio > 1.5 or ratio < 0.67)  # likely an unrestated stock split
+    checks["7 No dilution"] = ratio is not None and not split_suspect and ratio <= 1.005
     gm = lambda x: d(x["gross_profit"], x["revenue"])
     checks["8 Gross margin rising"] = gm(t) is not None and gm(p) is not None and gm(t) > gm(p)
     at = lambda x: d(x["revenue"], x["total_assets"])
     checks["9 Asset turnover rising"] = at(t) is not None and at(p) is not None and at(t) > at(p)
     score = sum(1 for v in checks.values() if v)
-    return {"f_score": score, "zone": "strong" if score >= 7 else "weak" if score <= 3 else "neutral", "checks": checks,
+    notes = ["Share count changed %.1fx y/y: probably a stock split not restated in the prior filing. Check 7 counted as a fail; verify manually." % ratio] if split_suspect else []
+    return {"f_score": score, "zone": "strong" if score >= 7 else "weak" if score <= 3 else "neutral", "checks": checks, "split_warnings": notes,
             "note": "Signals with missing data count as fails; check the 'checks' map before reading too much into a low score."}
 
 

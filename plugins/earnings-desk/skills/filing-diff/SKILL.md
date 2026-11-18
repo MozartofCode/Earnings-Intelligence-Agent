@@ -28,10 +28,10 @@ Companies reuse most of their filing text year after year, so the **edits** are 
 - `--new` (default 0 = latest) and `--old` (default 1 = the one before) **filing indexes**, plus `--max-items` (default 40).
 
 ### Getting the index right (read this)
-Indexes count **only filings of the chosen form, plus its `/A` amendments**, newest first.
+Indexes count **only original filings of the chosen form**, newest first. Amendments (10-K/A, 10-Q/A) are skipped, so a Part III-only 10-K/A can't knock the real 10-K out of index 0.
 - **10-K:** `--old 1` is last year's 10-K, `--old 2` is two years back.
 - **10-Q:** a fiscal year has **three** 10-Qs (Q4 is reported in the 10-K). So `--old 1` is the **prior quarter** and **`--old 3` is the same quarter last year** (the right comparison for seasonal MD&A language). Verified on MSFT: index 0 = quarter ended 2026-09-30, index 3 = quarter ended 2025-09-30.
-- **Amendments shift the count.** A 10-K/A (often just Part III) takes an index slot and usually has no Item 1A, which makes the script fail with "Section not found". Always list filings first and pick the indexes:
+- **Exact filings:** to compare specific filings (including an amendment that restated a section), pass `--new-accession` / `--old-accession` instead of indexes. List candidates first:
   ```bash
   python3 ../sec-edgar/scripts/edgar.py filings TICKER --forms 10-K,10-K/A,10-Q,10-Q/A --limit 12
   ```
