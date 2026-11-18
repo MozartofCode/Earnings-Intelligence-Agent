@@ -30,7 +30,7 @@ A short report mixes three things: facts you can check, inferences from those fa
 > **Chat answer:** lead with the verdict, and put the source next to each key number in the chat reply itself (e.g. `8-K Ex.99.1, accn 0000320193-26-000024` or `web: nasdaq.com, 2026-11-03`). Don't leave citations only in the report.
 
 ## Workflow
-1. **Get the report and its date.** Save the text to `.earnings-desk/work/TICKER-short-report.txt`. Record publisher, date, title, and the publisher's disclosed position (most short sellers disclose they are short; say so).
+1. **Get the report and its date.** Save the text to `.earnings-desk/work/TICKER-short-report.txt`. Record publisher, date, title, and the publisher's disclosed position (most short sellers disclose they are short; say so). If the source is anonymous or undated (a newsletter excerpt, a forum post, pasted claims), say so, use the date the user gives or "undated", and still test every claim; just skip the market-reaction step if there's no date.
 
 2. **Extract allegations.** Write a numbered list of **atomic, testable claims**. Split compound sentences ("revenue is inflated through related parties and the auditor is conflicted" is two claims). For each claim note: the exact wording (short quote), the type (see [references/allegation-playbook.md](references/allegation-playbook.md)), severity (High = would change the financial statements or legality; Medium = governance/disclosure; Low = color), and whether it is a **fact**, an **inference** or an **opinion**. Opinions ("the stock is worth $0") are labeled Opinion and not tested.
 
@@ -44,6 +44,7 @@ A short report mixes three things: facts you can check, inferences from those fa
    ```bash
    # disclosures and wording across filings (counts per filing show whether disclosure grew)
    python3 ${CLAUDE_SKILL_DIR}/scripts/evidence.py search TICKER --terms "related party|related parties,<named entity>,<named person>" --forms 10-K,10-Q --n 4 > .earnings-desk/work/TICKER-ev-1.json
+   # terms are literal phrases; use --term "phrase, with comma" for phrases containing commas
    # numbers behind accounting claims
    python3 ${CLAUDE_SKILL_DIR}/../financial-statements/scripts/statements.py TICKER --years 6 --quarters 8 > .earnings-desk/work/TICKER-st.json
    python3 ${CLAUDE_SKILL_DIR}/../forensic-accounting/scripts/scores.py TICKER > .earnings-desk/work/TICKER-scores.json

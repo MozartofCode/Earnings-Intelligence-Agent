@@ -47,6 +47,7 @@ Scripts live in `scripts/` next to this file. Other skills reach them at `${CLAU
 | SIC peer universe | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py peers NVDA` (a starting list only; refine by business model) |
 | Quote / market cap | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py quote NVDA` |
 | Price history | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py history NVDA --range 2y` |
+| Move around any event date (e.g. a short report) | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py reaction NVDA --date 2026-08-27` (prior close to next close; source named in the output of `history`) |
 | Post-earnings moves (last N prints) | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py reactions NVDA --n 8` |
 | Consensus estimates (key needed) | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py estimates NVDA` |
 | EPS surprise history (key needed) | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py surprises NVDA` |

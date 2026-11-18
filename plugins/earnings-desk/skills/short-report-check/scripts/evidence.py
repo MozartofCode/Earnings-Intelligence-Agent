@@ -4,7 +4,8 @@
 Commands
   search TICKER --terms "related party,Customer A|largest customer" [--forms 10-K,10-Q] [--n 3]
                 [--context 280] [--max-hits 6]
-      Finds each term (comma-separated; use | for synonyms within one term) in the
+      Finds each term (comma-separated, or repeat --term for phrases containing commas;
+      use | for synonyms within one term; terms are literal phrases, not regex) in the
       n most recent filings of each form. Returns, per term, cited snippets and a
       mention count per filing so you can see whether disclosure grew or shrank.
   events TICKER [--since 2024-01-01] [--limit 400]
@@ -92,7 +93,9 @@ def events(cik, since, limit):
             ev.append({"filed": r["filed"], "form": f, "items": [], "meaning": ["late filing notice" if f.startswith("NT ") else "amended periodic report"],
                        "accession": r["accession"], "url": r["url"]})
     serious = [e for e in ev if any(i in ("4.01", "4.02", "3.01") for i in e["items"]) or e["form"].startswith("NT ")]
-    return {"since": since, "filings_scanned": len(rows), "window": [rows[-1]["filed"], rows[0]["filed"]] if rows else None,
+    return {"since": since, "filings_scanned": len(rows), "window_requested": [since, "today"],
+            "filings_span": [rows[-1]["filed"], rows[0]["filed"]] if rows else None,
+            "window_complete": len(rows) < limit,
             "events": ev, "serious_events": serious,
             "note": "No 4.01/4.02/3.01 or NT filings in the window is itself a finding; state the window you checked."}
 
@@ -100,7 +103,8 @@ def events(cik, since, limit):
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = p.add_subparsers(dest="cmd")
-    s = sp.add_parser("search"); s.add_argument("ticker"); s.add_argument("--terms", required=True)
+    s = sp.add_parser("search"); s.add_argument("ticker"); s.add_argument("--terms", default="")
+    s.add_argument("--term", action="append", default=[], help="one literal phrase (repeatable; may contain commas)")
     s.add_argument("--forms", default="10-K,10-Q"); s.add_argument("--n", type=int, default=3)
     s.add_argument("--context", type=int, default=280); s.add_argument("--max-hits", type=int, default=6)
     e = sp.add_parser("events"); e.add_argument("ticker"); e.add_argument("--since", default="2023-01-01"); e.add_argument("--limit", type=int, default=400)
@@ -109,7 +113,9 @@ def main():
         p.print_help(); return
     co = edgar.resolve(a.ticker)
     if a.cmd == "search":
-        terms = [t.strip() for t in a.terms.split(",") if t.strip()]
+        terms = [t.strip() for t in a.terms.split(",") if t.strip()] + [t for t in a.term if t.strip()]
+        if not terms:
+            edgar.die("Pass --terms \"a,b|c\" and/or one or more --term \"phrase\".")
         forms = [f.strip() for f in a.forms.split(",") if f.strip()]
         out = dict(co, **search(co["cik"], terms, forms, a.n, a.context, a.max_hits))
     else:

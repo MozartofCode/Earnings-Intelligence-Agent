@@ -471,6 +471,8 @@ def earnings_release(cik, index=0, max_chars=150000, accession=None):
         die("No 8-K with Item 2.02 (results of operations) found at index %d" % index)
     row = rows[index]
     docs = exhibit_docs(cik, row, r"EX-99")
+    if accession:  # a specific 8-K: keep its main document (the item text) ahead of exhibits
+        docs = [row["primary_doc"]] + [d for d in docs if d != row["primary_doc"]]
     docs = docs or [row["primary_doc"]]
     texts = []
     for name in docs[:2]:
