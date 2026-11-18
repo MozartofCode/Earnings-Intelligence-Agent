@@ -177,6 +177,8 @@ METRICS = {
     "gross_profit": (["GrossProfit"], "flow"),
     "rnd": (["ResearchAndDevelopmentExpense", "ResearchAndDevelopmentExpenseExcludingAcquiredInProcessCost"], "flow"),
     "sga": (["SellingGeneralAndAdministrativeExpense"], "flow"),
+    "selling_marketing": (["SellingAndMarketingExpense", "SellingExpense", "MarketingAndAdvertisingExpense"], "flow"),
+    "g_and_a": (["GeneralAndAdministrativeExpense"], "flow"),
     "operating_income": (["OperatingIncomeLoss"], "flow"),
     "interest_expense": (["InterestExpense", "InterestExpenseNonoperating", "InterestExpenseDebt"], "flow"),
     "pretax_income": (["IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
@@ -488,7 +490,8 @@ def _t(node, path):
 
 def insiders(cik, days=180, limit=40):
     cutoff = (date.today() - timedelta(days=days)).isoformat()
-    rows = [r for r in recent_filings(cik, {"4", "4/A"}, limit=400) if r["filed"] >= cutoff][:limit]
+    in_window = [r for r in recent_filings(cik, {"4", "4/A"}, limit=400) if r["filed"] >= cutoff]
+    rows = in_window[:limit]
     txs, errors = [], 0
     for r in rows:
         try:
@@ -532,6 +535,9 @@ def insiders(cik, days=180, limit=40):
     sells = [t for t in txs if t["code"] == "S"]
     return {
         "window_days": days, "filings_scanned": len(rows), "parse_errors": errors,
+        "covered_from": rows[-1]["filed"] if rows else None, "covered_to": rows[0]["filed"] if rows else None,
+        "window_truncated": len(in_window) > len(rows),
+        "note": ("Only the newest %d of %d Form 4s in the window were parsed; raise --limit to cover all %d days." % (len(rows), len(in_window), days)) if len(in_window) > len(rows) else None,
         "summary": {
             "open_market_buys": len(buys), "buy_value": round(sum(t["value"] or 0 for t in buys), 2),
             "open_market_sales": len(sells), "sale_value": round(sum(t["value"] or 0 for t in sells), 2),
@@ -566,7 +572,7 @@ def peers(cik, limit=15):
         if c != int(cik) and c in rev and str(m[rev[c]].get("exchange")) in ("Nasdaq", "NYSE", "NYSE American"):
             by_cik[c] = {"cik": c, "name": html.unescape(n), "ticker": rev[c]}
     return {"sic": sic, "sic_description": sub.get("sicDescription"), "peers": list(by_cik.values())[:limit],
-            "note": "SIC peers are a starting point only; refine by business model, size and end market."}
+            "note": "SIC peers are alphabetical and include micro-caps. Treat them as a raw universe only; for large companies choose peers by business model and size yourself."}
 
 
 # ---------------------------------------------------------------- CLI

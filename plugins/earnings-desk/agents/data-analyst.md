@@ -23,28 +23,28 @@ Set `S` to the `skills/` directory above it. You will use `$S/sec-edgar/scripts/
 ## The data pack (exact commands)
 Run from the user's project directory, writing into `$RUN/data/` (create `data/text/`). If a command fails, record the error in the log and keep going. Never loop retries against rate limits.
 ```bash
-E="python3 $S/sec-edgar/scripts/edgar.py"; M="python3 $S/sec-edgar/scripts/market.py"
-$E profile T                                   > $RUN/data/profile.json
-$E filings T --forms 10-K,10-Q,8-K --limit 16  > $RUN/data/filings.json
-$E facts T --periods 12 --annual 6             > $RUN/data/facts.json
+E() { python3 "$S/sec-edgar/scripts/edgar.py" "$@"; }; M() { python3 "$S/sec-edgar/scripts/market.py" "$@"; }   # functions work in zsh and bash
+E profile T                                   > $RUN/data/profile.json
+E filings T --forms 10-K,10-Q,8-K --limit 16  > $RUN/data/filings.json
+E facts T --periods 12 --annual 6             > $RUN/data/facts.json
 python3 $S/financial-statements/scripts/statements.py T --years 5 --quarters 8 > $RUN/data/statements.json
-$M quote T                                     > $RUN/data/quote.json
+M quote T                                     > $RUN/data/quote.json
 python3 $S/forensic-accounting/scripts/scores.py T --market-cap <market_cap from quote.json> > $RUN/data/scores.json
-$M reactions T --n 8                           > $RUN/data/reactions.json
-$M estimates T                                 > $RUN/data/estimates.json
-$M surprises T                                 > $RUN/data/surprises.json
-$M calendar T                                  > $RUN/data/calendar.json
-$E insiders T --days 365                       > $RUN/data/insiders.json
-$E peers T                                     > $RUN/data/peers.json
+M reactions T --n 8                           > $RUN/data/reactions.json
+M estimates T                                 > $RUN/data/estimates.json
+M surprises T                                 > $RUN/data/surprises.json
+M calendar T                                  > $RUN/data/calendar.json
+E insiders T --days 365                       > $RUN/data/insiders.json
+E peers T                                     > $RUN/data/peers.json
 ```
 Filing text (JSON first, then extract the `text` field to a plain file so others can grep it):
 ```bash
-$E filing-text T --form 10-K --section 1    --max-chars 300000 > $RUN/data/10k-business.json
-$E filing-text T --form 10-K --section 1A   --max-chars 300000 > $RUN/data/10k-risk.json
-$E filing-text T --form 10-K --section mdna --max-chars 300000 > $RUN/data/10k-mdna.json
-$E filing-text T --form 10-Q --section mdna --max-chars 300000 > $RUN/data/10q-mdna.json
-$E earnings-release T            --max-chars 120000 > $RUN/data/release-0.json
-$E earnings-release T --index 1  --max-chars 120000 > $RUN/data/release-1.json
+E filing-text T --form 10-K --section 1    --max-chars 300000 > $RUN/data/10k-business.json
+E filing-text T --form 10-K --section 1A   --max-chars 300000 > $RUN/data/10k-risk.json
+E filing-text T --form 10-K --section mdna --max-chars 300000 > $RUN/data/10k-mdna.json
+E filing-text T --form 10-Q --section mdna --max-chars 300000 > $RUN/data/10q-mdna.json
+E earnings-release T            --max-chars 200000 > $RUN/data/release-0.json
+E earnings-release T --index 1  --max-chars 200000 > $RUN/data/release-1.json
 for f in 10k-business 10k-risk 10k-mdna 10q-mdna release-0 release-1; do
   python3 -c "import json,sys;d=json.load(open(sys.argv[1]));open(sys.argv[2],'w').write(d.get('text',''))" \
     $RUN/data/$f.json $RUN/data/text/$f.txt

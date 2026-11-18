@@ -54,7 +54,7 @@ def nearest(series_idx, end, tol_days=20):
 
 def build_rows(facts, which):
     data = facts[which]
-    flows = ["revenue", "cost_of_revenue", "gross_profit", "rnd", "sga", "operating_income", "interest_expense", "pretax_income", "income_tax",
+    flows = ["revenue", "cost_of_revenue", "gross_profit", "rnd", "sga", "selling_marketing", "g_and_a", "operating_income", "interest_expense", "pretax_income", "income_tax",
              "net_income", "eps_diluted", "shares_diluted", "da", "sbc", "operating_cash_flow", "capex", "acquisitions", "buybacks", "dividends_paid"]
     stocks = ["cash", "short_term_investments", "receivables", "inventory", "current_assets", "ppe_net", "goodwill", "total_assets", "accounts_payable",
               "current_liabilities", "long_term_debt", "short_term_debt", "total_liabilities", "retained_earnings", "equity", "shares_outstanding"]
@@ -66,6 +66,8 @@ def build_rows(facts, which):
         row = {"period_end": end, "fy": int(end[:4])}
         for m in flows + stocks:
             row[m] = nearest(idx[m], end)
+        if row["sga"] is None and row.get("selling_marketing") is not None and row.get("g_and_a") is not None:
+            row["sga"] = row["selling_marketing"] + row["g_and_a"]   # companies that tag S&M and G&A separately
         if row["gross_profit"] is None and row["revenue"] is not None and row["cost_of_revenue"] is not None:
             row["gross_profit"] = row["revenue"] - row["cost_of_revenue"]
         row["accn"] = r.get("accn")
@@ -127,6 +129,26 @@ def enrich(rows, periods_per_year):
     return rows
 
 
+def label_rows(rows, fye, quarterly):
+    """Add fiscal_label like 'FY26' / 'FY26 Q1' from the company's fiscal-year-end (MMDD).
+    A period ending within ~10 days after the FYE month boundary (52/53-week years) is
+    treated as that fiscal year end."""
+    fm, fd = int(fye[:2]), int(fye[2:])
+    for r in rows:
+        y, m, d = int(r["period_end"][:4]), int(r["period_end"][5:7]), int(r["period_end"][8:10])
+        # normalize 52/53-week calendars: a period ending in the first days of the month after FYE counts as FYE
+        if m == (fm % 12) + 1 and d <= 7:
+            m = fm
+            if fm == 12:
+                y -= 1
+        fy = y if (m < fm or (m == fm)) else y + 1
+        if not quarterly:
+            r["fiscal_label"] = "FY%02d" % (fy % 100)
+        else:
+            q = ((m - fm - 1) % 12) // 3 + 1
+            r["fiscal_label"] = "FY%02d Q%d" % (fy % 100, q)
+
+
 def ttm(qrows):
     last4 = qrows[-4:]
     if len(last4) < 4:
@@ -153,6 +175,9 @@ def main():
     facts = edgar.build_facts(co["cik"], n_quarters=a.quarters + 4, n_years=a.years + 1)
     annual = enrich(build_rows(facts, "annual"), 1)
     quarterly = enrich(build_rows(facts, "quarterly"), 4)
+    fye = str(edgar.submissions(co["cik"]).get("fiscalYearEnd") or "1231")
+    label_rows(annual, fye, quarterly=False)
+    label_rows(quarterly, fye, quarterly=True)
     out = dict(co, units="USD (raw); per-share in USD; shares in units", ttm=ttm(quarterly),
                annual=annual[-a.years:], quarterly=quarterly[-a.quarters:],
                missing_metrics=[m for m in edgar.METRICS if m not in facts["tags_used"]],
