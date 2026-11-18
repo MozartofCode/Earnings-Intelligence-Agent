@@ -266,7 +266,7 @@ def _series_for_tag(facts, tag, kind):
         d = _days(st, en)
         if 340 <= d <= 380:
             annual[en] = rec
-        elif 80 <= d <= 100:
+        elif 80 <= d <= 120:   # 12- to 16-week quarters (some retailers use 12/12/12/16)
             quarterly[en] = rec
     # Cash-flow statements (and some income statements) are reported year-to-date
     # in 10-Qs. Derive each missing quarter as the difference between consecutive
@@ -278,7 +278,7 @@ def _series_for_tag(facts, tag, kind):
         recs.sort(key=lambda r: r["end"])
         for prev, cur in zip(recs, recs[1:]):
             gap = _days(prev["end"], cur["end"])
-            if 80 <= gap <= 100 and cur["end"] not in quarterly:
+            if 80 <= gap <= 120 and cur["end"] not in quarterly:
                 val = cur["val"] - prev["val"]
                 if isinstance(val, float):
                     val = round(val, 4)
