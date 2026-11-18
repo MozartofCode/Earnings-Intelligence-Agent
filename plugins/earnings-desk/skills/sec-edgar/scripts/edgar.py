@@ -20,7 +20,7 @@ Commands
                     [--accession 0000320193-26-000024] [--include-amendments]
                                    Download a filing's primary document as plain text
                                    (amendments are skipped in --index unless asked for)
-  earnings-release TICKER [--index 0] [--max-chars 150000]
+  earnings-release TICKER [--index 0] [--max-chars 150000] [--accession ACCN]
                                    Latest 8-K Item 2.02 press release (Exhibit 99.x) text
   insiders TICKER [--days 180] [--limit 40]
                                    Parsed Form 4 insider transactions
@@ -193,7 +193,7 @@ METRICS = {
     "buybacks": (["PaymentsForRepurchaseOfCommonStock"], "flow"),
     "dividends_paid": (["PaymentsOfDividends", "PaymentsOfDividendsCommonStock"], "flow"),
     "cash": (["CashAndCashEquivalentsAtCarryingValue", "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"], "instant"),
-    "short_term_investments": (["ShortTermInvestments", "AvailableForSaleSecuritiesDebtSecuritiesCurrent", "MarketableSecuritiesCurrent"], "instant"),
+    "short_term_investments": (["ShortTermInvestments", "AvailableForSaleSecuritiesDebtSecuritiesCurrent", "MarketableSecuritiesCurrent", "DebtSecuritiesCurrent", "AvailableForSaleSecuritiesCurrent"], "instant"),
     "receivables": (["AccountsReceivableNetCurrent", "ReceivablesNetCurrent"], "instant"),
     "inventory": (["InventoryNet"], "instant"),
     "current_assets": (["AssetsCurrent"], "instant"),
@@ -454,8 +454,14 @@ def exhibit_docs(cik, row, type_prefix):
     return docs
 
 
-def earnings_release(cik, index=0, max_chars=150000):
-    rows = [r for r in recent_filings(cik, {"8-K"}, limit=200) if "2.02" in (r.get("items") or "")]
+def earnings_release(cik, index=0, max_chars=150000, accession=None):
+    if accession:
+        rows = [r for r in recent_filings(cik, {"8-K", "8-K/A"}, limit=1000) if r["accession"] == accession]
+        if not rows:
+            die("8-K %s not found for this company" % accession)
+        index = 0
+    else:
+        rows = [r for r in recent_filings(cik, {"8-K"}, limit=200) if "2.02" in (r.get("items") or "")]
     if len(rows) <= index:
         die("No 8-K with Item 2.02 (results of operations) found at index %d" % index)
     row = rows[index]
@@ -577,7 +583,7 @@ def main(argv=None):
     t.add_argument("--section"); t.add_argument("--max-chars", type=int, default=60000)
     t.add_argument("--accession", help="exact accession number (overrides --form/--index)")
     t.add_argument("--include-amendments", action="store_true", help="count 10-K/A, 10-Q/A in --index")
-    e = sp.add_parser("earnings-release"); e.add_argument("ticker"); e.add_argument("--index", type=int, default=0); e.add_argument("--max-chars", type=int, default=150000)
+    e = sp.add_parser("earnings-release"); e.add_argument("ticker"); e.add_argument("--index", type=int, default=0); e.add_argument("--max-chars", type=int, default=150000); e.add_argument("--accession", help="a specific 8-K by accession number (any item, e.g. a guarantee or exhibit-only 8-K)")
     i = sp.add_parser("insiders"); i.add_argument("ticker"); i.add_argument("--days", type=int, default=180); i.add_argument("--limit", type=int, default=40)
     pe = sp.add_parser("peers"); pe.add_argument("ticker"); pe.add_argument("--limit", type=int, default=15)
     a = p.parse_args(argv)
@@ -606,7 +612,7 @@ def main(argv=None):
     elif a.cmd == "filing-text":
         out = dict(co, **filing_text(cik, a.form, a.index, a.section, a.max_chars, a.accession, a.include_amendments))
     elif a.cmd == "earnings-release":
-        out = dict(co, **earnings_release(cik, a.index, a.max_chars))
+        out = dict(co, **earnings_release(cik, a.index, a.max_chars, a.accession))
     elif a.cmd == "insiders":
         out = dict(co, **insiders(cik, a.days, a.limit))
     elif a.cmd == "peers":

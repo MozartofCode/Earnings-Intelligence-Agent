@@ -147,7 +147,8 @@ def main():
     manufacturer = sic[:1] in ("2", "3")
     financial = sic[:2] in ("60", "61", "62", "63", "64", "67")
     trend = [{"fy_end": r["period_end"], "dso": r["dso"], "dio": r["dio"], "dpo": r["dpo"], "cash_conversion": r["cash_conversion"],
-              "sbc_pct_rev": r["sbc_pct_rev"], "gross_margin_pct": r["gross_margin_pct"], "share_count_yoy_pct": r.get("share_count_yoy_pct")} for r in rows[-5:]]
+              "sbc_pct_rev": r["sbc_pct_rev"], "gross_margin_pct": r["gross_margin_pct"], "share_count_yoy_pct": r.get("share_count_yoy_pct"),
+              "split_suspect": bool(r.get("share_count_yoy_pct") is not None and abs(r["share_count_yoy_pct"]) > 50)} for r in rows[-5:]]
     flags = []
     win = "%s→%s" % (trend[0]["fy_end"][:4], trend[-1]["fy_end"][:4])
     def drift(k, label):

@@ -42,7 +42,7 @@ Scripts live in `scripts/` next to this file. Other skills reach them at `${CLAU
 | Normalized financials (35 metrics, annual + quarterly) | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py facts NVDA --periods 12 --annual 6` |
 | One raw XBRL tag | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py concept NVDA RevenueFromContractWithCustomerExcludingAssessedTax` |
 | Filing text, one section | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py filing-text NVDA --form 10-K --section 1A` (sections: `1`, `1A`, `1C`, `3`, `7`/`mdna`, `7A`, `8`, `9A`, or heading text; `--index 1` = prior filing) |
-| Latest earnings press release | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py earnings-release NVDA > .earnings-desk/work/NVDA-er0.json` (`--index 1` = previous quarter; default 150k chars, each exhibit marked `===== EXHIBIT: … =====`) |
+| Latest earnings press release | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py earnings-release NVDA > .earnings-desk/work/NVDA-er0.json` (`--index 1` = previous quarter; `--accession` picks any specific 8-K; default 150k chars, each exhibit marked `===== EXHIBIT: … =====`) |
 | Insider transactions | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py insiders NVDA --days 180` |
 | SIC peer universe | `python3 ${CLAUDE_SKILL_DIR}/scripts/edgar.py peers NVDA` (a starting list only; refine by business model) |
 | Quote / market cap | `python3 ${CLAUDE_SKILL_DIR}/scripts/market.py quote NVDA` |
