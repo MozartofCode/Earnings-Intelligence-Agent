@@ -50,7 +50,8 @@ Contracts: $S/deep-dive/references/agent-contracts.md · Memo template: $S/deep-
 5. **No advice language** in any file: no buy, sell, short, target price or position sizing. Scenario values are "value if assumptions hold".
 6. **Human number formats:** `$96.2B`, `$2.46`, `+106% y/y`, `+40 bps`, `24.5x`. Fiscal labels plus period-end dates.
 7. **Length limits** exclude tables and Sources. Going over means you did not prioritize.
-8. **One valuation convention for every role:** scenario values are per share after subtracting net debt including finance-lease liabilities (dcf.py's default), at the brief's price and the valuation memo's WACC unless you state otherwise. Give the horizon (`--years`) with every value, because a 15-year fade can be worth far more than a 10-year one.
+8. **One valuation convention for every role:** scenario values are per share after subtracting net debt including existing finance-lease liabilities (dcf.py's default), at the brief's price and the valuation memo's WACC and horizon. FCF margins are post-SBC and exclude future finance-lease additions; a "lease-loaded" variant (margin minus lease additions as % of revenue) may be shown in addition, clearly labelled, never instead. Give the horizon (`--years`) with every value. The PM weights scenarios at the valuation memo's horizon and reports a 15-year cross-check.
+9. **Citing other roles:** reuse their source IDs where they exist. To cite a memo's finding or table, write `[memo:forensics §Key finding 2]` or `[memo:earnings §Table 1]`; this counts as a defined source.
 
 ## 4. Return summary (every agent → orchestrator, 200 words or fewer)
 ```

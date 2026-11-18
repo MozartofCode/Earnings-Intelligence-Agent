@@ -19,7 +19,7 @@ python3 <S>/sec-edgar/scripts/render_report.py <RUN>/pm/report.json --out-dir ea
 | 7 | Bull vs. bear | section | Each side's thesis and pillars, and what survived the rebuttal (the PM's debate scorecard) |
 | 8 | Key debates | section | 2–4 deciding variables: bull view · bear view · desk call · resolving evidence · date |
 | 9 | Catalysts & risks | section | Dated catalysts (both directions) and the risk register |
-| 10 | Kill criteria & monitoring | section | 3–5 measurable, dated triggers, ready for `thesis-tracker` |
+| 10 | Kill criteria & monitoring | section | 3–5 measurable, dated triggers that would **invalidate** the view (for an Unattractive view: the evidence that would prove it too cautious), ready for `thesis-tracker` |
 | 11 | Sources | `sources` | Every citation from every memo, de-duplicated |
 
 That is 9 sections, above the schema's usual 4–8, on purpose: this is the flagship long-form memo. Quick mode uses 5 (see §5).
@@ -40,7 +40,7 @@ Compute the **probability-weighted value (PWV)** = Σ p_i × value_i over the be
 4. Quick mode → conviction at most Medium, and the verdict label gets the suffix "(quick take)".
 5. The PM may deviate from the arithmetic only with a written reason (e.g. a binary regulatory event the DCF can't capture).
 
-**Conviction:** **High** = the lenses broadly agree, each key variable has strong evidence, data quality is good, and the bear–bull range is under ~60% of price. **Low** = a key variable is close to a coin flip, the lenses conflict, or the data has gaps. **Medium** = everything else.
+**Conviction:** **High** = the lenses broadly agree, each key variable has strong evidence, data quality is good, and the bear–bull range is under ~60% of price. **Low** = a key variable is close to a coin flip, the lenses conflict on the same question (e.g. two lenses disagree on cash generation); momentum vs. value tension is normal and does not by itself lower conviction, or the data has gaps. **Medium** = everything else.
 
 **Framing (mandatory):** the verdict is a *research view on risk/reward at today's price*. Never "buy", "sell", "short", "target price" or position sizing. The stamp's `sub` always ends in "· not advice".
 

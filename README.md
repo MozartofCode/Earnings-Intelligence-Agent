@@ -71,6 +71,21 @@ Claude is a brilliant generalist. Ask it about a stock without a process, though
 
 In the [AAPL example](examples/AAPL-earnings-recap-2026-11-17.md), the headline was "beat on revenue and EPS". earnings-desk found that the **whole $0.11 EPS beat was roughly a tariff refund plus a lower tax rate**, and that inventory was 2.5× last year's level. That's the difference.
 
+### Tested blind, not just claimed
+
+We ran the same five research questions through Claude twice: once on its own (with web search) and once with earnings-desk. The answers were shuffled and anonymized, and a separate judge model scored them without knowing which was which, spot-checking numbers against SEC filings.
+
+| | Claude alone | Claude + earnings-desk |
+|---|---|---|
+| Head-to-head (5 cases) | 0 wins | **4 wins**, 1 tie |
+| Case criteria passed | 5 / 8 | **8 / 8** |
+| Sourcing (1–10) | 5.4 | **8.6** |
+| Depth (1–10) | 6.6 | **8.8** |
+| Usefulness (1–10) | 6.8 | **8.8** |
+| Accuracy (1–10) | 7.2 | **7.6** |
+
+The method, its limits (one run per case, an AI judge), the first round where earnings-desk lost one case, and what we fixed afterwards are all in [evals/RESULTS.md](plugins/earnings-desk/evals/RESULTS.md). The eval suite is included, so you can re-run it yourself with `claude plugin eval`.
+
 ---
 
 ## Quick start
@@ -333,10 +348,11 @@ Every intermediate memo is saved in `.earnings-desk/runs/` so you can audit how 
 
 ## Example reports
 
-Real reports, produced by following the skills on live SEC data. Read the Markdown here, or download the HTML and open it in a browser.
+Real reports, produced by following the skills on live SEC data. Read the Markdown here, or download the HTML and open it in a browser. The deep dive's [audit trail](examples/MSFT-deep-dive-run/) has every intermediate file: the data brief, four specialist memos, the bull and bear cases with rebuttals, and the portfolio manager's decision.
 
 | Report | Verdict | The finding |
 |---|---|---|
+| [MSFT · deep-dive (full 8-agent desk)](examples/MSFT-deep-dive-2026-11-18.md) ([HTML](examples/MSFT-deep-dive-2026-11-18.html) · [audit trail](examples/MSFT-deep-dive-run/)) | Research view: **Unattractive**, medium conviction | Great franchise, demanding price. The 10-year break-even FCF margin (31.1%) is above Microsoft's best ever (29.1%), and reported FCF of $67.0B is about $42.4B once finance-lease assets count. OpenAI is now 10.8% of revenue and non-exclusive |
 | [AAPL · earnings-recap, Q4 FY26](examples/AAPL-earnings-recap-2026-11-17.md) ([HTML](examples/AAPL-earnings-recap-2026-11-17.html)) | Print quality: **Mixed** | Revenue and guidance beat, but the $0.11 EPS beat is about equal to a tariff refund plus a lower tax rate; inventory is 2.5× last year's level |
 | [NVDA · forensic-accounting, FY26](examples/NVDA-forensic-accounting-2026-11-17.md) ([HTML](examples/NVDA-forensic-accounting-2026-11-17.html)) | Forensic verdict: **Watch** | The "elevated" Beneish score is mostly growth, but $14.4B of goodwill came from a non-exclusive license-and-hire deal |
 
